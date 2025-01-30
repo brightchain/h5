@@ -368,7 +368,8 @@ func (*ExportExcel) Jxms(c *gin.Context) {
 		Area          string `json:"area" tag:"区"`
 		Address       string `json:"address" tag:"地址"`
 		Customer_info string `json:"customer_info" tag:"客户姓名"`
-		Cus_mobile    string `json:"cus_mobile" tag:"客户手机"`
+		Cus_mobile    int `json:"cus_mobile" tag:"客户手机"`
+		Cus_address    string `json:"cus_address" tag:"客户地址"`
 		Ship_name     string `json:"ship_name" tag:"快递公司"`
 		Ship_no       string `json:"ship_no" tag:"快递单号"`
 	}
@@ -380,6 +381,8 @@ func (*ExportExcel) Jxms(c *gin.Context) {
 	db.Db.Raw(sqlQuery).Find(&result)
 	type Customer struct {
 		Contact  string `json:"contact"`
+		Mobile   int `json:"mobile"`
+		Address   string `json:"address"`
 		Work_num int    `json:"work_num"`
 	}
 
@@ -387,8 +390,11 @@ func (*ExportExcel) Jxms(c *gin.Context) {
 		if v.Customer_info != "" {
 			var tom Customer
 			err := json.Unmarshal([]byte(v.Customer_info), &tom)
+			fmt.Println(tom)
 			if err == nil {
 				result[k].Customer_info = tom.Contact
+				result[k].Cus_mobile = tom.Mobile
+				result[k].Cus_address = tom.Address
 			}
 		}
 
