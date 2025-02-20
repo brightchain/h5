@@ -34,12 +34,8 @@ func RegisterWebRouters(r *gin.Engine) {
 		exGroup.GET("/fjtp", export.FjTp)
 		exGroup.GET("/nyorder", export.NyOrder)
 		exGroup.GET("/hntborder", export.HntbOrder)
-<<<<<<< HEAD
 		exGroup.GET("/photocancel", export.PhotoCancal)
-
-=======
 		exGroup.GET("/jxms", export.Jxms)
->>>>>>> 37b33727d3bd7ba268dd236079888e0e68512b7e
 	}
 
 	aes := controllers.AesEcb{}
