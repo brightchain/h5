@@ -353,6 +353,67 @@ func (*ExportExcel) Hnkj(c *gin.Context) {
 	utils.Down(result, "河南阳光客经", c)
 }
 
+func (*ExportExcel) Jxms(c *gin.Context) {
+
+	type Result struct {
+		Name            string `json:"name" tag:"代理人姓名"`
+		Work_num      string `json:"work_num" tag:"工号"`
+		Mobile        string `json:"mobile" tag:"手机号"`
+		Organ         string `json:"organ" tag:"机构"`
+		Status        string `json:"status" tag:"状态"`
+		Active_time   string `json:"active_time" tag:"激活时间"`
+		Order_no      string `json:"order_no" tag:"订单号"`
+		Contact       string `json:"contact" tag:"联系人"`
+		Amobile        string `json:"amobile" tag:"手机号"`
+		Province      string `json:"province" tag:"省"`
+		City          string `json:"city" tag:"市"`
+		Area          string `json:"area" tag:"区"`
+		Address       string `json:"address" tag:"地址"`
+		Customer_info string `json:"customer_info" tag:"客户姓名"`
+		Cus_mobile    int `json:"cus_mobile" tag:"客户手机"`
+		Cus_address    string `json:"cus_address" tag:"客户地址"`
+		Ship_name     string `json:"ship_name" tag:"快递公司"`
+		Ship_no       string `json:"ship_no" tag:"快递单号"`
+	}
+
+	var result []Result
+
+	sqlQuery := "select a.active_time,a.status,b.name,b.mobile,b.work_num,b.organ,c.order_no,c.contact,c.mobile,c.province,c.city,c.area,c.address,c.customer_info,c.ship_name,c.ship_no from car_coupon a left join  car_order_photo_worknum b on a.mobile = b.mobile and b.company = 41 left join car_order_photo c on a.id = c.coupon_id and c.status <> -1 where a.batch_num = 'P2501271727' and a.status in(1,2) "
+	db := model.RDB[model.MASTER]
+	db.Db.Raw(sqlQuery).Find(&result)
+	type Customer struct {
+		Contact  string `json:"contact"`
+		Mobile   int `json:"mobile"`
+		Address   string `json:"address"`
+		Work_num int    `json:"work_num"`
+	}
+
+	for k, v := range result {
+		if v.Customer_info != "" {
+			var tom Customer
+			err := json.Unmarshal([]byte(v.Customer_info), &tom)
+			fmt.Println(tom)
+			if err == nil {
+				result[k].Customer_info = tom.Contact
+				result[k].Cus_mobile = tom.Mobile
+				result[k].Cus_address = tom.Address
+			}
+		}
+
+		status := "已激活"
+		num, _ := strconv.Atoi(v.Status)
+		if num == 2 {
+			status = "已下单"
+		}
+		result[k].Status = status
+		if v.Active_time != "0" {
+			result[k].Active_time = utils.FormatDateByString(v.Active_time)
+		}
+	}
+
+	utils.Down(result, "江西民生摆台", c)
+}
+
 func (*ExportExcel) Smwj(c *gin.Context) {
 	at := c.Query("at")
 	if at != "sfdjwie2ji239324" {

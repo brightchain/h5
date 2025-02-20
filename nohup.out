@@ -1,0 +1,118 @@
+[GIN-debug] [WARNING] Creating an Engine instance with the Logger and Recovery middleware already attached.
+
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+[GIN-debug] GET    /ping                     --> h5/routers.addWebRoute.func1 (4 handlers)
+[GIN-debug] GET    /index                    --> h5/controllers.Index (4 handlers)
+[GIN-debug] GET    /hngx                     --> h5/controllers.Hngx (4 handlers)
+[GIN-debug] GET    /hnkj                     --> h5/controllers.Hnkj (4 handlers)
+[GIN-debug] GET    /wj                       --> h5/controllers.Smwj (4 handlers)
+[GIN-debug] GET    /export/fjpa              --> h5/controllers.Fjpa (5 handlers)
+[GIN-debug] GET    /export/xinhua            --> h5/controllers.Xinhua (5 handlers)
+[GIN-debug] [WARNING] You trusted all proxies, this is NOT safe. We recommend you to set a value.
+Please check https://pkg.go.dev/github.com/gin-gonic/gin#readme-don-t-trust-all-proxies for details.
+[GIN-debug] Listening and serving HTTP on 127.0.0.1:8080
+[GIN-debug] [WARNING] Creating an Engine instance with the Logger and Recovery middleware already attached.
+
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+[GIN-debug] GET    /ping                     --> h5/routers.addWebRoute.func1 (4 handlers)
+[GIN-debug] GET    /index                    --> h5/controllers.Index (4 handlers)
+[GIN-debug] GET    /hngx                     --> h5/controllers.Hngx (4 handlers)
+[GIN-debug] GET    /hnkj                     --> h5/controllers.Hnkj (4 handlers)
+[GIN-debug] GET    /wj                       --> h5/controllers.Smwj (4 handlers)
+[GIN-debug] GET    /export/fjpa              --> h5/controllers.Fjpa (5 handlers)
+[GIN-debug] GET    /export/xinhua            --> h5/controllers.Xinhua (5 handlers)
+[GIN-debug] [WARNING] You trusted all proxies, this is NOT safe. We recommend you to set a value.
+Please check https://pkg.go.dev/github.com/gin-gonic/gin#readme-don-t-trust-all-proxies for details.
+[GIN-debug] Listening and serving HTTP on 127.0.0.1:8080
+[GIN-debug] [WARNING] Creating an Engine instance with the Logger and Recovery middleware already attached.
+
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+[GIN-debug] GET    /ping                     --> h5/routers.addWebRoute.func1 (4 handlers)
+[GIN-debug] GET    /index                    --> h5/controllers.Index (4 handlers)
+[GIN-debug] GET    /hngx                     --> h5/controllers.Hngx (4 handlers)
+[GIN-debug] GET    /hnkj                     --> h5/controllers.Hnkj (4 handlers)
+[GIN-debug] GET    /wj                       --> h5/controllers.Smwj (4 handlers)
+[GIN-debug] GET    /export/fjpa              --> h5/controllers.Fjpa (5 handlers)
+[GIN-debug] GET    /export/xinhua            --> h5/controllers.Xinhua (5 handlers)
+[GIN-debug] [WARNING] You trusted all proxies, this is NOT safe. We recommend you to set a value.
+Please check https://pkg.go.dev/github.com/gin-gonic/gin#readme-don-t-trust-all-proxies for details.
+[GIN-debug] Listening and serving HTTP on 127.0.0.1:8080
+[GIN-debug] [ERROR] listen tcp 127.0.0.1:8080: bind: address already in use
+[GIN-debug] [WARNING] Creating an Engine instance with the Logger and Recovery middleware already attached.
+
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+[GIN-debug] GET    /ping                     --> h5/routers.addWebRoute.func1 (4 handlers)
+[GIN-debug] GET    /index                    --> h5/controllers.Index (4 handlers)
+[GIN-debug] GET    /hngx                     --> h5/controllers.Hngx (4 handlers)
+[GIN-debug] GET    /hnkj                     --> h5/controllers.Hnkj (4 handlers)
+[GIN-debug] GET    /wj                       --> h5/controllers.Smwj (4 handlers)
+[GIN-debug] GET    /export/fjpa              --> h5/controllers.Fjpa (5 handlers)
+[GIN-debug] GET    /export/xinhua            --> h5/controllers.Xinhua (5 handlers)
+[GIN-debug] [WARNING] You trusted all proxies, this is NOT safe. We recommend you to set a value.
+Please check https://pkg.go.dev/github.com/gin-gonic/gin#readme-don-t-trust-all-proxies for details.
+[GIN-debug] Listening and serving HTTP on 127.0.0.1:8080
+[GIN-debug] [ERROR] listen tcp 127.0.0.1:8080: bind: address already in use
+[GIN-debug] [WARNING] Creating an Engine instance with the Logger and Recovery middleware already attached.
+
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+[GIN-debug] GET    /ping                     --> h5/routers.addWebRoute.func1 (4 handlers)
+[GIN-debug] GET    /index                    --> h5/controllers.Index (4 handlers)
+[GIN-debug] GET    /hngx                     --> h5/controllers.Hngx (4 handlers)
+[GIN-debug] GET    /hnkj                     --> h5/controllers.Hnkj (4 handlers)
+[GIN-debug] GET    /wj                       --> h5/controllers.Smwj (4 handlers)
+[GIN-debug] GET    /export/fjpa              --> h5/controllers.Fjpa (5 handlers)
+[GIN-debug] GET    /export/xinhua            --> h5/controllers.Xinhua (5 handlers)
+[GIN-debug] [WARNING] You trusted all proxies, this is NOT safe. We recommend you to set a value.
+Please check https://pkg.go.dev/github.com/gin-gonic/gin#readme-don-t-trust-all-proxies for details.
+[GIN-debug] Listening and serving HTTP on 127.0.0.1:8080
+[GIN-debug] [WARNING] Creating an Engine instance with the Logger and Recovery middleware already attached.
+
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+[GIN-debug] GET    /ping                     --> h5/routers.addWebRoute.func1 (4 handlers)
+[GIN-debug] GET    /index                    --> h5/controllers.Index (4 handlers)
+[GIN-debug] GET    /hngx                     --> h5/controllers.Hngx (4 handlers)
+[GIN-debug] GET    /hnkj                     --> h5/controllers.Hnkj (4 handlers)
+[GIN-debug] GET    /wj                       --> h5/controllers.Smwj (4 handlers)
+[GIN-debug] GET    /export/fjpa              --> h5/controllers.Fjpa (5 handlers)
+[GIN-debug] GET    /export/xinhua            --> h5/controllers.Xinhua (5 handlers)
+[GIN-debug] [WARNING] You trusted all proxies, this is NOT safe. We recommend you to set a value.
+Please check https://pkg.go.dev/github.com/gin-gonic/gin#readme-don-t-trust-all-proxies for details.
+[GIN-debug] Listening and serving HTTP on 127.0.0.1:8080
+[GIN-debug] [WARNING] Creating an Engine instance with the Logger and Recovery middleware already attached.
+
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+{"time":"2024-03-21T10:45:47.630946128+08:00","level":"INFO","source":{"function":"h5/config.SetupSlog","file":"D:/code/h5/config/logger.go","line":39},"msg":"初始化日志完成"}
+[GIN-debug] GET    /ping                     --> h5/routers.addWebRoute.func1 (4 handlers)
+[GIN-debug] GET    /index                    --> h5/controllers.Index (4 handlers)
+[GIN-debug] GET    /hngx                     --> h5/controllers.Hngx (4 handlers)
+[GIN-debug] GET    /hnkj                     --> h5/controllers.Hnkj (4 handlers)
+[GIN-debug] GET    /wj                       --> h5/controllers.Smwj (4 handlers)
+[GIN-debug] GET    /export/fjpa              --> h5/controllers.Fjpa (5 handlers)
+[GIN-debug] GET    /export/xinhua            --> h5/controllers.Xinhua (5 handlers)
+[GIN-debug] GET    /export/ydln              --> h5/controllers.Ydln (5 handlers)
+[GIN-debug] GET    /export/excel-down        --> h5/controllers.ExcelDown (5 handlers)
+[GIN-debug] POST   /aes/aes                  --> h5/controllers.Aes (4 handlers)
+[GIN-debug] [WARNING] You trusted all proxies, this is NOT safe. We recommend you to set a value.
+Please check https://pkg.go.dev/github.com/gin-gonic/gin#readme-don-t-trust-all-proxies for details.
+[GIN-debug] Listening and serving HTTP on :8787
