@@ -4,9 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"h5/pkg/model"
+	wechabot "h5/pkg/wechaBot"
 	"h5/utils"
 	"log/slog"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -451,7 +453,7 @@ func (*ExportExcel) NyOrder(c *gin.Context) {
 
 func (*ExportExcel) HntbOrder(c *gin.Context) {
 	type Result struct {
-		Order_no    string `json:"order_no" tag:"订单号"`
+		Order_no     string `json:"order_no" tag:"订单号"`
 		Name         string `json:"name" tag:"产品名称"`
 		Num          string `json:"num" tag:"产品数量"`
 		Price        string `json:"price" tag:"产品价格"`
@@ -474,4 +476,54 @@ func (*ExportExcel) HntbOrder(c *gin.Context) {
 	db.Db.Raw(sqlQuery).Find(&result)
 
 	utils.Down(result, "湖南太保礼品增订", c)
+}
+
+func (*ExportExcel) PhotoCancal(c *gin.Context) {
+	type Result struct {
+		Order_no    string `json:"order_no" tag:"订单号"`
+		Contact     string `json:"contact" tag:"收货人"`
+		Mobile      string `json:"mobile" tag:"收货手机"`
+		Province    string `json:"province" tag:"省"`
+		City        string `json:"city" tag:"市"`
+		Area        string `json:"area" tag:"区"`
+		Address     string `json:"address" tag:"收货地址"`
+		Cus_contact string `json:"cus_contact" tag:"客户联系人"`
+		Cus_mobile  string `json:"cus_mobile" tag:"客户手机号"`
+		Organ       string `json:"organ" tag:"机构名称"`
+		Work_num    string `json:"work_num" tag:"工号"`
+		Style       string `json:"style" tag:"模板名称"`
+		Name        string `json:"name" tag:"卡券名称"`
+	}
+	now := time.Now()
+	loc := now.Location()
+	startOfDay := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, loc)
+	timestamp := startOfDay.Unix()
+	sqlQuery := fmt.Sprintf("select order_no , contact ,a.mobile ,province,city,area,address ,SUBSTRING_INDEX(REPLACE (customer_info,CONCAT(SUBSTRING_INDEX(customer_info, 'contact:', 1),'contact:'),''),'', 1) as cus_contact,SUBSTRING_INDEX(REPLACE (customer_info,CONCAT(SUBSTRING_INDEX(customer_info, 'mobile:', 1),'mobile:'),''),'', 1) as cus_mobile,organ ,work_num ,style ,c.name  from  car.car_order_photo a LEFT JOIN car.car_coupon b on a.coupon_id = b.id LEFT JOIN car.car_coupon_type c on b.tp_code = c.code  where a.status = -1 and b.status = 1  and a.u_time > %d and a.u_time <= %d", timestamp-86400, timestamp)
+
+	db := model.RDB[model.MASTER]
+	var result []Result
+	db.Db.Raw(sqlQuery).Find(&result)
+	path := "./storage/app/public"
+	name := fmt.Sprintf("照片摆台工厂取消订单_%s", time.Now().Format("20060102"))
+	fileName := path + "/" + name + ".xlsx"
+	utils.SaveFile(result, fileName)
+	weBot := wechabot.NewWechaBot("bot1")
+	
+	res, err := weBot.Upload(fileName)
+	if(err != nil){
+		fmt.Printf("%v", err)
+		c.String(200, "文件上传失败！")
+		return
+	}
+
+	err = weBot.SendFile(res.MediaID)
+	if(err != nil){
+		fmt.Printf("%v", err)
+		c.String(200, "消息发送失败！")
+		return
+	}
+
+	c.String(200, "发送成功！")
+	return
+
 }
