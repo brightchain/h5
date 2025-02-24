@@ -588,3 +588,49 @@ func (*ExportExcel) PhotoCancal(c *gin.Context) {
 	return
 
 }
+
+func (*ExportExcel) GdpaOrder(c *gin.Context) {
+	type Result struct {
+		Order_no    string `json:"order_no" tag:"订单号"`
+		Agt_mobile  string `json:"agt_mobile" tag:"业务员手机"`
+		Contact     string `json:"contact" tag:"收货人"`
+		Mobile      string `json:"mobile" tag:"收货手机"`
+		Province    string `json:"province" tag:"省"`
+		City        string `json:"city" tag:"市"`
+		Area        string `json:"area" tag:"区"`
+		Address     string `json:"address" tag:"收货地址"`
+		Ship_name   string `json:"ship_name" tag:"快递公司"`
+		Ship_no     string `json:"ship_no" tag:"快递单号"`
+		Ship_time   string `json:"ship_time" tag:"发货时间"`
+		Status   string `json:"status" tag:"状态"`
+		C_time   string `json:"c_time" tag:"下单时间"`
+	}
+
+	sqlQuery := `
+	SELECT 
+		a.order_no,
+		b.mobile AS agt_mobile,
+		a.contact,
+		a.mobile,
+		a.province,
+		a.city,
+		a.area,
+		a.address,
+		a.ship_name,
+		a.ship_no,
+		IF(a.ship_time > 0, DATE_FORMAT(FROM_UNIXTIME(a.ship_time), '%Y-%m-%d %H:%i:%s'), '') AS ship_time,
+		DATE_FORMAT(FROM_UNIXTIME(a.c_time), '%Y-%m-%d %H:%i:%s') AS c_time
+	FROM car_order_tshirt a
+	JOIN car_coupon b 
+	WHERE a.coupon_id = b.id 
+	AND a.status <> -1 
+	AND b.tp_code = 'CT001604'
+`
+
+	db := model.RDB[model.MASTER]
+	var result []Result
+	db.Db.Raw(sqlQuery).Find(&result)	
+
+	utils.Down(result, "广东平安马克杯订单", c)
+
+}
