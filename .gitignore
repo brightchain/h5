@@ -6,3 +6,4 @@ h5
 log/*
 storage/app/public/*
 storage/logs/*
+tmp/*
