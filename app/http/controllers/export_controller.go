@@ -684,3 +684,30 @@ func (*ExportExcel) GdpaOrderZs(c *gin.Context) {
 
 	utils.Down(result, "中山马克杯数据", c)
 }
+
+
+func (*ExportExcel) GdpaOrders(c *gin.Context) {
+	type Result struct {
+		Code       string `json:"code" tag:"优惠券包编号"`
+		Name       string `json:"name" tag:"名称"`
+		Sn         string `json:"sn" tag:"序列号"`
+		Password   string `json:"password" tag:"兑换码"`
+		Organ   string `json:"organ" tag:"机构名称"`
+		Status     string `json:"status" tag:"状态"`
+		ActiveTime string `json:"active_time" tag:"激活时间"`
+		Phone     string `json:"phone" tag:"业务员手机"`
+		OrderNo    string `json:"order_no" tag:"订单号"`
+		Contact    string `json:"contact" tag:"收货人"`
+		Mobile string `json:"mobile" tag:"收货手机"`
+		Address    string `json:"address" tag:"收货地址"`
+		ShipName   string `json:"ship_name" tag:"快递公司"`
+		ShipNo     string `json:"ship_no" tag:"快递单号"`
+	}
+	var result []Result
+	sqlQuery := "select b.code,b.name,b.sn,b.`password`,a.organ,if(b.status =0,'未激活','已激活') status,if(b.active_time,FROM_UNIXTIME(b.active_time, '%Y-%m-%d %H:%i:%s'),'') active_time,b.mobile as phone,d.order_no,d.contact,d.mobile,concat(d.province,d.city,d.area,d.address) address,d.ship_name,d.ship_no from tmp_gdpa a LEFT JOIN car_coupon_pkg b on a.`password` = b.`password` LEFT JOIN car_coupon c on b.id = c.pkg_id LEFT JOIN car_order_tshirt d on c.id = d.coupon_id WHERE a.type = 3"
+
+	db := model.RDB[model.MASTER]
+	db.Db.Raw(sqlQuery).Find(&result)
+
+	utils.Down(result, "广东平安马克杯数据", c)
+}
