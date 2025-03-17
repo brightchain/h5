@@ -559,11 +559,21 @@ func (*ExportExcel) PhotoCancal(c *gin.Context) {
 	loc := now.Location()
 	startOfDay := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, loc)
 	timestamp := startOfDay.Unix()
-	sqlQuery := fmt.Sprintf(`select order_no , contact ,a.mobile ,province,city,area,address ,SUBSTRING_INDEX(REPLACE (customer_info,CONCAT(SUBSTRING_INDEX(customer_info, '"contact":', 1),'"contact":"'),''),'"', 1) as cus_contact,SUBSTRING_INDEX(REPLACE (customer_info,CONCAT(SUBSTRING_INDEX(customer_info, '"mobile":', 1),'"mobile":"'),''),'"', 1) as cus_mobile,organ ,work_num ,style ,c.name  from  car.car_order_photo a LEFT JOIN car.car_coupon b on a.coupon_id = b.id LEFT JOIN car.car_coupon_type c on b.tp_code = c.code  where a.status = -1 and b.status = 1  and a.u_time > %d and a.u_time <= %d`, timestamp-86400, timestamp)
+	weekDay := now.Weekday()
+	startOfTime := timestamp - 86400
+	if weekDay == 1{
+		startOfTime = timestamp - 259200
+	}
+	sqlQuery := fmt.Sprintf(`select order_no , contact ,a.mobile ,province,city,area,address ,SUBSTRING_INDEX(REPLACE (customer_info,CONCAT(SUBSTRING_INDEX(customer_info, '"contact":', 1),'"contact":"'),''),'"', 1) as cus_contact,SUBSTRING_INDEX(REPLACE (customer_info,CONCAT(SUBSTRING_INDEX(customer_info, '"mobile":', 1),'"mobile":"'),''),'"', 1) as cus_mobile,organ ,work_num ,style ,c.name  from  car.car_order_photo a LEFT JOIN car.car_coupon b on a.coupon_id = b.id LEFT JOIN car.car_coupon_type c on b.tp_code = c.code  where a.status = -1 and b.status = 1  and a.u_time > %d and a.u_time <= %d`, startOfTime, timestamp)
 
 	db := model.RDB[model.MASTER]
 	var result []Result
-	db.Db.Raw(sqlQuery).Find(&result)
+	err := db.Db.Raw(sqlQuery).Find(&result).Error
+	if err != nil {
+		fmt.Printf("%v", err)
+		c.String(200, "查询失败！")
+		return
+	}
 	path := "./storage/app/public"
 	name := fmt.Sprintf("照片摆台工厂取消订单_%s", time.Now().Format("20060102"))
 	fileName := path + "/" + name + ".xlsx"
@@ -698,16 +708,20 @@ func (*ExportExcel) GdpaImport(c *gin.Context) {
 		Ship_num int `json:"ship_num" tag:"发货数量"`
 	}
 	var result []Result
-	sqlQuery := "SELECT a.organ, a.name, a.work_num, a.mobile, a.num, (SELECT COUNT(id) FROM car_coupon b WHERE b.mobile = a.mobile AND b.batch_num = 'D2502131732') AS active_num, (SELECT COUNT(c.id) FROM car_coupon b LEFT JOIN car_order_tshirt c ON b.id = c.coupon_id AND c.status <> -1 WHERE b.mobile = a.mobile AND b.batch_num = 'D2502131732') AS order_num, (SELECT SUM(CASE WHEN c.ship_no IS NOT NULL AND c.ship_no <> '' THEN 1 ELSE 0 END) FROM car_coupon b LEFT JOIN car_order_tshirt c ON b.id = c.coupon_id AND c.status <> -1 WHERE b.mobile = a.mobile AND b.batch_num = 'D2502131732') AS ship_num FROM tmp_gdpa a WHERE a.type = 3;"
+	sqlQuery := "SELECT a.organ, a.name, a.work_num, a.mobile, a.num, (SELECT COUNT(id) FROM car_coupon b WHERE b.mobile = a.mobile AND b.batch_num = 'D2502131732') AS active_num, (SELECT COUNT(c.id) FROM car_coupon b LEFT JOIN car_order_tshirt c ON b.id = c.coupon_id AND c.status <> -1 WHERE b.mobile = a.mobile AND b.batch_num = 'D2502131732') AS order_num, (SELECT SUM(CASE WHEN c.ship_no IS NOT NULL AND c.ship_no <> '' THEN 1 ELSE 0 END) FROM car_coupon b LEFT JOIN car_order_tshirt c ON b.id = c.coupon_id AND c.status <> -1 WHERE b.mobile = a.mobile AND b.batch_num = 'D2502131732') AS ship_num FROM tmp_gdpa a WHERE a.type = 3"
 
 	db := model.RDB[model.MASTER]
 	db.Db.Raw(sqlQuery).Find(&result)
-
+	
 	utils.Down(result, "广东平安手机权益绑定数据", c)
 }
 
 func (*ExportExcel) GdpaOrders(c *gin.Context) {
 	typeVal := c.Query("type")
+	if typeVal == "" {
+		c.String(200, "缺少参数！")
+		return
+	}
 	type Result struct {
 		Code       string `json:"code" tag:"优惠券包编号"`
 		Name       string `json:"name" tag:"名称"`
