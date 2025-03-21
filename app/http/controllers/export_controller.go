@@ -750,3 +750,29 @@ func (*ExportExcel) GdpaOrders(c *gin.Context) {
 	utils.Down(result, name, c)
 }
 
+func (*ExportExcel) YggxOrder(c *gin.Context) {
+	type Result struct {
+		Phone     string `json:"phone" tag:"业务员手机"`
+		Num       string `json:"num" tag:"匹配数量"`
+		Sn         string `json:"sn" tag:"序列号"`
+		Id   string `json:"id" tag:"卡券ID"`
+		Status     string `json:"status" tag:"状态"`
+		ActiveTime string `json:"active_time" tag:"激活时间"`
+		OrderNo    string `json:"order_no" tag:"订单号"`
+		Contact    string `json:"contact" tag:"收货人"`
+		Mobile string `json:"mobile" tag:"收货手机"`
+		Address    string `json:"address" tag:"收货地址"`
+		ShipName   string `json:"ship_name" tag:"快递公司"`
+		ShipNo     string `json:"ship_no" tag:"快递单号"`
+	}
+	var result []Result
+	sqlQuery := "select a.mobile phone,a.num,b.sn,b.`id`,case b.`status` when 0 then '未激活' when 1 then '已激活' when 2 then '已下单' when 3 then '已过期' end status,if(b.active_time,FROM_UNIXTIME(b.active_time, '%Y-%m-%d %H:%i:%s'),'') active_time,d.order_no,d.contact,d.mobile,concat(d.province,d.city,d.area,d.address) address,d.ship_name,d.ship_no from car_member_bind_logs a LEFT JOIN car_coupon b on a.`mobile` = b.`mobile` and a.coupon_batch = b.batch_num LEFT JOIN car_order_tshirt d on b.id = d.coupon_id and d.status <> -1 WHERE a.coupon_batch = 'D2503171756'"
+
+	db := model.RDB[model.MASTER]
+	db.Db.Raw(sqlQuery).Find(&result)
+	name := "马克杯下单数据"
+	
+	utils.Down(result, name, c)
+}
+
+
