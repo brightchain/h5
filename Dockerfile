@@ -1,17 +1,13 @@
 # 第一阶段：构建阶段
-FROM golang:1.21-alpine AS builder
+FROM golang:latest AS builder
 
 # 设置工作目录
 WORKDIR /app
-
-# 复制 go.mod 和 go.sum 文件并下载依赖
-COPY go.mod  ./
-RUN go mod download
-
-RUN go mod tidy && go mod download
-
 # 复制源代码
 COPY . .
+
+RUN go mod tidy 
+RUN go mod download
 
 # 编译 Go 应用，禁用 CGO 以生成静态二进制文件
 RUN  go build -o h5 main.go
