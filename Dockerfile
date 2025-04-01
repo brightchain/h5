@@ -22,7 +22,7 @@ WORKDIR /app
 COPY --from=builder /app/h5 .
 
 # 暴露端口（假设应用监听 8080）
-EXPOSE 8080
+EXPOSE 8787
 
 # 运行应用
 CMD ["./h5"]
