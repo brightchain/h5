@@ -1,6 +1,10 @@
 # 第一阶段：构建阶段
 FROM golang:latest AS builder
 
+ENV CGO_ENABLED 0
+ENV GOOS linux
+
+
 # 设置工作目录
 WORKDIR /app
 # 复制源代码
@@ -25,4 +29,4 @@ COPY --from=builder /app/h5 .
 EXPOSE 8787
 
 # 运行应用
-CMD ["./h5"]
+ENTRYPOINT ["./h5"]
