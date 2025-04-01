@@ -10,7 +10,7 @@ RUN go mod tidy
 RUN go mod download
 
 # 编译 Go 应用，禁用 CGO 以生成静态二进制文件
-RUN CGO_ENABLED=0 GOOS=linux go build -o h5 main.go
+RUN go build -o h5 main.go
 
 # 第二阶段：运行阶段
 FROM alpine:latest
