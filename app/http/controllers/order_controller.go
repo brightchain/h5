@@ -5,6 +5,7 @@ import (
 	"h5/pkg/model"
 	"log/slog"
 	"net/http"
+	"regexp"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -104,7 +105,7 @@ func (p *PayOrder) collectOrderGroups(rows [][]string) (map[string][]OrderData, 
 
 		// 处理特殊情况：订单号以"10"开头
 		payNo := ""
-		
+
 		if (orderNo[:2] == "10" || orderNo[:2] == "wx") && len(row) > 11 {
 			orderNo = strings.TrimSpace(strings.ReplaceAll(row[11], "`", ""))
 		} else if len(row) > 11 {
@@ -314,4 +315,77 @@ func (p *PayOrder) updateExcelWithResults(f *excelize.File, results map[string]Q
 func (p *PayOrder) handleError(c *gin.Context, message string, err error) {
 	slog.Error(message, err)
 	c.String(http.StatusInternalServerError, message)
+}
+
+func (p *PayOrder) ExcelFix(c *gin.Context) {
+	f, err := excelize.OpenFile("1.xlsx")
+	if err != nil {
+		p.handleError(c, "打开Excel文件失败", err)
+		return
+	}
+	defer f.Close()
+
+	sheets := f.GetSheetList()
+	if len(sheets) == 0 {
+		fmt.Errorf("no sheets found in excel file")
+		return
+	}
+	sheetName := sheets[0]
+
+	colNum := 8
+	// 获取列名
+	rows, err := f.GetRows(sheetName)
+	if err != nil {
+		fmt.Errorf("failed to get rows: %v", err)
+		return
+	}
+
+	colName := "I"
+	
+	for rowIdx, row := range rows {
+        if colNum >= len(row) {
+            continue 
+        }
+        
+        original := row[colNum]
+        cleaned := cleanHTML(original)
+        
+        if rowIdx == 1 {
+            fmt.Printf("Row %d - Original: %s\n", rowIdx+1, original)
+            fmt.Printf("Row %d - Cleaned: %s\n", rowIdx+1, cleaned)
+        }
+        
+        // 设置单元格值
+        cellRef := fmt.Sprintf("%s%d", colName, rowIdx+1)
+        if err := f.SetCellValue(sheetName, cellRef, cleaned); err != nil {
+            fmt.Errorf("failed to set cell %s: %v", cellRef, err)
+			return 
+        }
+    }
+
+	
+
+
+	// Save the modified Excel file
+	if err := f.SaveAs("2.xlsx"); err != nil {
+		fmt.Errorf("failed to save modified excel: %v", err)
+		return
+	}
+
+
+	c.String(http.StatusOK, "处理完成")
+}
+
+func cleanHTML(input string) string {
+    // Remove HTML tags
+    re := regexp.MustCompile(`<[^>]*>`)
+    cleaned := re.ReplaceAllString(input, "")
+
+    // Remove extra whitespace and newlines
+    cleaned = strings.TrimSpace(cleaned)
+    // Replace multiple newlines with single newline
+    reNewline := regexp.MustCompile(`\n\s*\n+`)
+    cleaned = reNewline.ReplaceAllString(cleaned, "\n\n")
+
+    return cleaned
 }
