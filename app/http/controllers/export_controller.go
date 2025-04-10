@@ -775,4 +775,28 @@ func (*ExportExcel) YggxOrder(c *gin.Context) {
 	utils.Down(result, name, c)
 }
 
+func (*ExportExcel) Hnms(c *gin.Context){
+	type Result struct {
+		Mobile     string `json:"mobile" tag:"代理人手机号"`
+		Num        string `json:"num" tag:"匹配数量"`
+		Name       string `json:"name" tag:"代理人姓名"`
+		Organ      string `json:"organ" tag:"机构名称"`
+		ActiveTime string `json:"active_time" tag:"激活时间"`
+		Status     string `json:"status" tag:"状态"`
+		OrderNo    string `json:"order_no" tag:"订单号"`
+		Contact     string `json:"contact" tag:"收货人"`
+		Phone      string `json:"phone" tag:"收货手机"`
+		Address    string `json:"address" tag:"收货地址"`
+		ShipName   string `json:"ship_name" tag:"快递公司"`
+		ShipNo     string `json:"ship_no" tag:"快递单号"`
+	}
+	var result []Result
+	sqlQuery := "select a.mobile,a.num,d.name,d.organ,if(b.active_time,FROM_UNIXTIME(b.active_time),'') 'active_time',case b.status when '' then '未激活' when 1 then '已激活' when 2 then '已下单' end 'status',c.order_no,c.contact,c.mobile phone,concat(c.province,c.city,c.area,c.address) address,if(c.c_time,FROM_UNIXTIME(c.c_time),'') order_time,c.ship_name,c.ship_no from car_member_bind_logs a LEFT JOIN car_coupon b on a.mobile = b.mobile and b.batch_num = 'P2504051322' LEFT JOIN car_order_photo c on b.id = c.coupon_id and c.status != -1 LEFT JOIN car_order_photo_worknum d on a.mobile = d.mobile and d.company = 43 where a.coupon_batch = 'P2504051322'"
+	
+	db := model.RDB[model.MASTER]
+	db.Db.Raw(sqlQuery).Find(&result)
+	
+	utils.Down(result, "河南民生摆台订单", c)
+}
+
 

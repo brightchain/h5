@@ -29,4 +29,4 @@ COPY --from=builder /app/h5 .
 EXPOSE 8787
 
 # 运行应用
-ENTRYPOINT ["./h5"]
+CMD ["./main"]
