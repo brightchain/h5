@@ -356,7 +356,7 @@ func (*ExportExcel) Hnkj(c *gin.Context) {
 func (*ExportExcel) Jxms(c *gin.Context) {
 
 	type Result struct {
-		Name            string `json:"name" tag:"代理人姓名"`
+		Name          string `json:"name" tag:"代理人姓名"`
 		Work_num      string `json:"work_num" tag:"工号"`
 		Mobile        string `json:"mobile" tag:"手机号"`
 		Organ         string `json:"organ" tag:"机构"`
@@ -364,14 +364,14 @@ func (*ExportExcel) Jxms(c *gin.Context) {
 		Active_time   string `json:"active_time" tag:"激活时间"`
 		Order_no      string `json:"order_no" tag:"订单号"`
 		Contact       string `json:"contact" tag:"联系人"`
-		Amobile        string `json:"amobile" tag:"手机号"`
+		Amobile       string `json:"amobile" tag:"手机号"`
 		Province      string `json:"province" tag:"省"`
 		City          string `json:"city" tag:"市"`
 		Area          string `json:"area" tag:"区"`
 		Address       string `json:"address" tag:"地址"`
 		Customer_info string `json:"customer_info" tag:"客户姓名"`
-		Cus_mobile    int `json:"cus_mobile" tag:"客户手机"`
-		Cus_address    string `json:"cus_address" tag:"客户地址"`
+		Cus_mobile    int    `json:"cus_mobile" tag:"客户手机"`
+		Cus_address   string `json:"cus_address" tag:"客户地址"`
 		Ship_name     string `json:"ship_name" tag:"快递公司"`
 		Ship_no       string `json:"ship_no" tag:"快递单号"`
 	}
@@ -383,8 +383,8 @@ func (*ExportExcel) Jxms(c *gin.Context) {
 	db.Db.Raw(sqlQuery).Find(&result)
 	type Customer struct {
 		Contact  string `json:"contact"`
-		Mobile   int `json:"mobile"`
-		Address   string `json:"address"`
+		Mobile   int    `json:"mobile"`
+		Address  string `json:"address"`
 		Work_num int    `json:"work_num"`
 	}
 
@@ -561,7 +561,7 @@ func (*ExportExcel) PhotoCancal(c *gin.Context) {
 	timestamp := startOfDay.Unix()
 	weekDay := now.Weekday()
 	startOfTime := timestamp - 86400
-	if weekDay == 1{
+	if weekDay == 1 {
 		startOfTime = timestamp - 259200
 	}
 	sqlQuery := fmt.Sprintf(`select order_no , contact ,a.mobile ,province,city,area,address ,SUBSTRING_INDEX(REPLACE (customer_info,CONCAT(SUBSTRING_INDEX(customer_info, '"contact":', 1),'"contact":"'),''),'"', 1) as cus_contact,SUBSTRING_INDEX(REPLACE (customer_info,CONCAT(SUBSTRING_INDEX(customer_info, '"mobile":', 1),'"mobile":"'),''),'"', 1) as cus_mobile,organ ,work_num ,style ,c.name  from  car.car_order_photo a LEFT JOIN car.car_coupon b on a.coupon_id = b.id LEFT JOIN car.car_coupon_type c on b.tp_code = c.code  where a.status = -1 and b.status = 1  and a.u_time > %d and a.u_time <= %d`, startOfTime, timestamp)
@@ -579,16 +579,16 @@ func (*ExportExcel) PhotoCancal(c *gin.Context) {
 	fileName := path + "/" + name + ".xlsx"
 	utils.SaveFile(result, fileName)
 	weBot := wechabot.NewWechaBot("bot1")
-	
+
 	res, err := weBot.Upload(fileName)
-	if(err != nil){
+	if err != nil {
 		fmt.Printf("%v", err)
 		c.String(200, "文件上传失败！")
 		return
 	}
 
 	err = weBot.SendFile(res.MediaID)
-	if(err != nil){
+	if err != nil {
 		fmt.Printf("%v", err)
 		c.String(200, "消息发送失败！")
 		return
@@ -601,19 +601,19 @@ func (*ExportExcel) PhotoCancal(c *gin.Context) {
 
 func (*ExportExcel) GdpaOrder(c *gin.Context) {
 	type Result struct {
-		Order_no    string `json:"order_no" tag:"订单号"`
-		Agt_mobile  string `json:"agt_mobile" tag:"业务员手机"`
-		Contact     string `json:"contact" tag:"收货人"`
-		Mobile      string `json:"mobile" tag:"收货手机"`
-		Province    string `json:"province" tag:"省"`
-		City        string `json:"city" tag:"市"`
-		Area        string `json:"area" tag:"区"`
-		Address     string `json:"address" tag:"收货地址"`
-		Ship_name   string `json:"ship_name" tag:"快递公司"`
-		Ship_no     string `json:"ship_no" tag:"快递单号"`
-		Ship_time   string `json:"ship_time" tag:"发货时间"`
-		Status   string `json:"status" tag:"状态"`
-		C_time   string `json:"c_time" tag:"下单时间"`
+		Order_no   string `json:"order_no" tag:"订单号"`
+		Agt_mobile string `json:"agt_mobile" tag:"业务员手机"`
+		Contact    string `json:"contact" tag:"收货人"`
+		Mobile     string `json:"mobile" tag:"收货手机"`
+		Province   string `json:"province" tag:"省"`
+		City       string `json:"city" tag:"市"`
+		Area       string `json:"area" tag:"区"`
+		Address    string `json:"address" tag:"收货地址"`
+		Ship_name  string `json:"ship_name" tag:"快递公司"`
+		Ship_no    string `json:"ship_no" tag:"快递单号"`
+		Ship_time  string `json:"ship_time" tag:"发货时间"`
+		Status     string `json:"status" tag:"状态"`
+		C_time     string `json:"c_time" tag:"下单时间"`
 	}
 
 	sqlQuery := `
@@ -639,7 +639,7 @@ func (*ExportExcel) GdpaOrder(c *gin.Context) {
 
 	db := model.RDB[model.MASTER]
 	var result []Result
-	db.Db.Raw(sqlQuery).Find(&result)	
+	db.Db.Raw(sqlQuery).Find(&result)
 
 	utils.Down(result, "广东平安马克杯订单", c)
 
@@ -653,10 +653,10 @@ func (*ExportExcel) GdpaOrderZj(c *gin.Context) {
 		Password   string `json:"password" tag:"兑换码"`
 		Status     string `json:"status" tag:"状态"`
 		ActiveTime string `json:"active_time" tag:"激活时间"`
-		Phone     string `json:"phone" tag:"业务员手机"`
+		Phone      string `json:"phone" tag:"业务员手机"`
 		OrderNo    string `json:"order_no" tag:"订单号"`
 		Contact    string `json:"contact" tag:"收货人"`
-		Mobile string `json:"mobile" tag:"收货手机"`
+		Mobile     string `json:"mobile" tag:"收货手机"`
 		Address    string `json:"address" tag:"收货地址"`
 		ShipName   string `json:"ship_name" tag:"快递公司"`
 		ShipNo     string `json:"ship_no" tag:"快递单号"`
@@ -678,10 +678,10 @@ func (*ExportExcel) GdpaOrderZs(c *gin.Context) {
 		Password   string `json:"password" tag:"兑换码"`
 		Status     string `json:"status" tag:"状态"`
 		ActiveTime string `json:"active_time" tag:"激活时间"`
-		Phone     string `json:"phone" tag:"业务员手机"`
+		Phone      string `json:"phone" tag:"业务员手机"`
 		OrderNo    string `json:"order_no" tag:"订单号"`
 		Contact    string `json:"contact" tag:"收货人"`
-		Mobile string `json:"mobile" tag:"收货手机"`
+		Mobile     string `json:"mobile" tag:"收货手机"`
 		Address    string `json:"address" tag:"收货地址"`
 		ShipName   string `json:"ship_name" tag:"快递公司"`
 		ShipNo     string `json:"ship_no" tag:"快递单号"`
@@ -695,24 +695,23 @@ func (*ExportExcel) GdpaOrderZs(c *gin.Context) {
 	utils.Down(result, "中山马克杯数据", c)
 }
 
-
 func (*ExportExcel) GdpaImport(c *gin.Context) {
 	type Result struct {
-		Organ   string `json:"organ" tag:"机构名称"`
+		Organ      string `json:"organ" tag:"机构名称"`
 		Name       string `json:"name" tag:"姓名"`
-		Work_num         string `json:"work_num" tag:"工号"`
-		Mobile string `json:"mobile" tag:"手机号"`
-		Num int `json:"num" tag:"权益数量"`
-		Active_num int `json:"active_num" tag:"激活数量"`
-		Order_num int `json:"order_num" tag:"订单数量"`
-		Ship_num int `json:"ship_num" tag:"发货数量"`
+		Work_num   string `json:"work_num" tag:"工号"`
+		Mobile     string `json:"mobile" tag:"手机号"`
+		Num        int    `json:"num" tag:"权益数量"`
+		Active_num int    `json:"active_num" tag:"激活数量"`
+		Order_num  int    `json:"order_num" tag:"订单数量"`
+		Ship_num   int    `json:"ship_num" tag:"发货数量"`
 	}
 	var result []Result
 	sqlQuery := "SELECT a.organ, a.name, a.work_num, a.mobile, a.num, (SELECT COUNT(id) FROM car_coupon b WHERE b.mobile = a.mobile AND b.batch_num = 'D2502131732') AS active_num, (SELECT COUNT(c.id) FROM car_coupon b LEFT JOIN car_order_tshirt c ON b.id = c.coupon_id AND c.status <> -1 WHERE b.mobile = a.mobile AND b.batch_num = 'D2502131732') AS order_num, (SELECT SUM(CASE WHEN c.ship_no IS NOT NULL AND c.ship_no <> '' THEN 1 ELSE 0 END) FROM car_coupon b LEFT JOIN car_order_tshirt c ON b.id = c.coupon_id AND c.status <> -1 WHERE b.mobile = a.mobile AND b.batch_num = 'D2502131732') AS ship_num FROM tmp_gdpa a WHERE a.type = 3"
 
 	db := model.RDB[model.MASTER]
 	db.Db.Raw(sqlQuery).Find(&result)
-	
+
 	utils.Down(result, "广东平安手机权益绑定数据", c)
 }
 
@@ -727,13 +726,13 @@ func (*ExportExcel) GdpaOrders(c *gin.Context) {
 		Name       string `json:"name" tag:"名称"`
 		Sn         string `json:"sn" tag:"序列号"`
 		Password   string `json:"password" tag:"兑换码"`
-		Organ   string `json:"organ" tag:"机构名称"`
+		Organ      string `json:"organ" tag:"机构名称"`
 		Status     string `json:"status" tag:"状态"`
 		ActiveTime string `json:"active_time" tag:"激活时间"`
-		Phone     string `json:"phone" tag:"业务员手机"`
+		Phone      string `json:"phone" tag:"业务员手机"`
 		OrderNo    string `json:"order_no" tag:"订单号"`
 		Contact    string `json:"contact" tag:"收货人"`
-		Mobile string `json:"mobile" tag:"收货手机"`
+		Mobile     string `json:"mobile" tag:"收货手机"`
 		Address    string `json:"address" tag:"收货地址"`
 		ShipName   string `json:"ship_name" tag:"快递公司"`
 		ShipNo     string `json:"ship_no" tag:"快递单号"`
@@ -742,25 +741,25 @@ func (*ExportExcel) GdpaOrders(c *gin.Context) {
 	sqlQuery := "select b.code,b.name,b.sn,b.`password`,a.organ,if(b.status =0,'未激活','已激活') status,if(b.active_time,FROM_UNIXTIME(b.active_time, '%Y-%m-%d %H:%i:%s'),'') active_time,b.mobile as phone,d.order_no,d.contact,d.mobile,concat(d.province,d.city,d.area,d.address) address,d.ship_name,d.ship_no from tmp_gdpa a LEFT JOIN car_coupon_pkg b on a.`password` = b.`password` LEFT JOIN car_coupon c on b.id = c.pkg_id LEFT JOIN car_order_tshirt d on c.id = d.coupon_id WHERE a.type = ?"
 
 	db := model.RDB[model.MASTER]
-	db.Db.Raw(sqlQuery,typeVal).Find(&result)
+	db.Db.Raw(sqlQuery, typeVal).Find(&result)
 	name := "广东平安券码征订数据"
 	if typeVal == "5" {
 		name = "广东平安主管支持数据"
-	} 
+	}
 	utils.Down(result, name, c)
 }
 
 func (*ExportExcel) YggxOrder(c *gin.Context) {
 	type Result struct {
-		Phone     string `json:"phone" tag:"业务员手机"`
-		Num       string `json:"num" tag:"匹配数量"`
+		Phone      string `json:"phone" tag:"业务员手机"`
+		Num        string `json:"num" tag:"匹配数量"`
 		Sn         string `json:"sn" tag:"序列号"`
-		Id   string `json:"id" tag:"卡券ID"`
+		Id         string `json:"id" tag:"卡券ID"`
 		Status     string `json:"status" tag:"状态"`
 		ActiveTime string `json:"active_time" tag:"激活时间"`
 		OrderNo    string `json:"order_no" tag:"订单号"`
 		Contact    string `json:"contact" tag:"收货人"`
-		Mobile string `json:"mobile" tag:"收货手机"`
+		Mobile     string `json:"mobile" tag:"收货手机"`
 		Address    string `json:"address" tag:"收货地址"`
 		ShipName   string `json:"ship_name" tag:"快递公司"`
 		ShipNo     string `json:"ship_no" tag:"快递单号"`
@@ -771,11 +770,11 @@ func (*ExportExcel) YggxOrder(c *gin.Context) {
 	db := model.RDB[model.MASTER]
 	db.Db.Raw(sqlQuery).Find(&result)
 	name := "马克杯下单数据"
-	
+
 	utils.Down(result, name, c)
 }
 
-func (*ExportExcel) Hnms(c *gin.Context){
+func (*ExportExcel) Hnms(c *gin.Context) {
 	type Result struct {
 		Mobile     string `json:"mobile" tag:"代理人手机号"`
 		Num        string `json:"num" tag:"匹配数量"`
@@ -784,7 +783,7 @@ func (*ExportExcel) Hnms(c *gin.Context){
 		ActiveTime string `json:"active_time" tag:"激活时间"`
 		Status     string `json:"status" tag:"状态"`
 		OrderNo    string `json:"order_no" tag:"订单号"`
-		Contact     string `json:"contact" tag:"收货人"`
+		Contact    string `json:"contact" tag:"收货人"`
 		Phone      string `json:"phone" tag:"收货手机"`
 		Address    string `json:"address" tag:"收货地址"`
 		ShipName   string `json:"ship_name" tag:"快递公司"`
@@ -792,11 +791,35 @@ func (*ExportExcel) Hnms(c *gin.Context){
 	}
 	var result []Result
 	sqlQuery := "select a.mobile,a.num,d.name,d.organ,if(b.active_time,FROM_UNIXTIME(b.active_time),'') 'active_time',case b.status when '' then '未激活' when 1 then '已激活' when 2 then '已下单' end 'status',c.order_no,c.contact,c.mobile phone,concat(c.province,c.city,c.area,c.address) address,if(c.c_time,FROM_UNIXTIME(c.c_time),'') order_time,c.ship_name,c.ship_no from car_member_bind_logs a LEFT JOIN car_coupon b on a.mobile = b.mobile and b.batch_num = 'P2504051322' LEFT JOIN car_order_photo c on b.id = c.coupon_id and c.status != -1 LEFT JOIN car_order_photo_worknum d on a.mobile = d.mobile and d.company = 43 where a.coupon_batch = 'P2504051322'"
-	
+
 	db := model.RDB[model.MASTER]
 	db.Db.Raw(sqlQuery).Find(&result)
-	
+
 	utils.Down(result, "河南民生摆台订单", c)
 }
 
+func (*ExportExcel) Gdtk(c *gin.Context) {
+	type Result struct {
+		OrderNo      string `json:"order_no" tag:"订单编号"`
+		Product      string `json:"product" tag:"产品名称"`
+		Num          string `json:"num" tag:"购买数量"`
+		Order_amount string `json:"order_amount" tag:"订单金额"`
+		PayNo        string `json:"pay_no" tag:"支付单号"`
+		PayAt        string `json:"pay_at" tag:"支付时间"`
+		Mobile       string `json:"mobile" tag:"手机号"`
+		Work_num     string `json:"work_num" tag:"业务员工号"`
+		Organ        string `json:"organ" tag:"中支"`
+		Name         string `json:"name" tag:"营业部"`
+		Status       string `json:"status" tag:"订单状态"`
+		C_time       string `json:"c_time" tag:"创建时间"`
+	}
 
+	var result []Result
+
+	sqlQuery := "select a.order_no, case a.pro_id when 'TK001' then '元气参耳鲜炖宝' when 'TK002' then '景点旅游门票年卡' end product,a.num,a.order_amount,a.pay_no,if(a.pay_at,FROM_UNIXTIME(a.pay_at),'') as 'pay_at',case a.status when 0 then '未付款' when 1 then '已付款' when 2 then '已完成' when -1 then '已取消' end as 'status',b.name as 'name',b.mobile,b.contact,b.organ,b.work_num,FROM_UNIXTIME(a.c_time,'%Y-%m-%d %H:%i:%s') as 'c_time'  from car_order_gdpa a LEFT JOIN car_order_photo_agent b on (a.uid = b.uid and b.company = 44) where a.company = 4 "
+
+	db := model.RDB[model.MASTER]
+	db.Db.Raw(sqlQuery).Find(&result)
+
+	utils.Down(result, "广东泰康客养礼采购订单", c)
+}
