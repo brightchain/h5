@@ -819,7 +819,14 @@ func (*ExportExcel) Gdtk(c *gin.Context) {
 	sqlQuery := "select a.order_no, case a.pro_id when 'TK001' then '元气参耳鲜炖宝' when 'TK002' then '景点旅游门票年卡' end product,a.num,a.order_amount,a.pay_no,if(a.pay_at,FROM_UNIXTIME(a.pay_at),'') as 'pay_at',case a.status when 0 then '未付款' when 1 then '已付款' when 2 then '已完成' when -1 then '已取消' end as 'status',b.name as 'name',b.mobile,b.contact,b.organ,b.work_num,FROM_UNIXTIME(a.c_time,'%Y-%m-%d %H:%i:%s') as 'c_time'  from car_order_gdpa a LEFT JOIN car_order_photo_agent b on (a.uid = b.uid and b.company = 44) where a.company = 4 "
 
 	db := model.RDB[model.MASTER]
-	db.Db.Raw(sqlQuery).Find(&result)
+	err := db.Db.Raw(sqlQuery).Find(&result).Error
+	if err != nil {
+		c.String(200, "暂无订单数据！")
+		return
+	}
+	if len(result) == 0 {
+		c.String(200, "暂无订单数据！")
+	}
 
 	utils.Down(result, "广东泰康客养礼采购订单", c)
 }
