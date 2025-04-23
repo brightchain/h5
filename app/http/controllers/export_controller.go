@@ -790,7 +790,7 @@ func (*ExportExcel) Hnms(c *gin.Context) {
 		ShipNo     string `json:"ship_no" tag:"快递单号"`
 	}
 	var result []Result
-	sqlQuery := "select a.mobile,a.num,d.name,d.organ,if(b.active_time,FROM_UNIXTIME(b.active_time),'') 'active_time',case b.status when '' then '未激活' when 1 then '已激活' when 2 then '已下单' end 'status',c.order_no,c.contact,c.mobile phone,concat(c.province,c.city,c.area,c.address) address,if(c.c_time,FROM_UNIXTIME(c.c_time),'') order_time,c.ship_name,c.ship_no from car_member_bind_logs a LEFT JOIN car_coupon b on a.mobile = b.mobile and b.batch_num = 'P2504051322' LEFT JOIN car_order_photo c on b.id = c.coupon_id and c.status != -1 LEFT JOIN car_order_photo_worknum d on a.mobile = d.mobile and d.company = 43 where a.coupon_batch = 'P2504051322'"
+	sqlQuery := "select a.mobile,if(a.status =1,1,sum(a.num)) num,d.name,d.organ,if(b.active_time,FROM_UNIXTIME(b.active_time),'') 'active_time',case b.status when '' then '未激活' when 1 then '已激活' when 2 then '已下单' end 'status',c.order_no,c.contact,c.mobile phone,concat(c.province,c.city,c.area,c.address) address,if(c.c_time,FROM_UNIXTIME(c.c_time),'') order_time,c.ship_name,c.ship_no from car_member_bind_logs a LEFT JOIN car_coupon b on a.mobile = b.mobile and b.batch_num = 'P2504051322' LEFT JOIN car_order_photo c on b.id = c.coupon_id and c.batch_num = 'P2504051322' and c.status != -1 LEFT JOIN car_order_photo_worknum d on a.mobile = d.mobile and d.company = 43 where a.coupon_batch = 'P2504051322' GROUP BY a.mobile,b.id"
 
 	db := model.RDB[model.MASTER]
 	db.Db.Raw(sqlQuery).Find(&result)
