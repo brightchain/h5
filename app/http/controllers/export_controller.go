@@ -839,6 +839,8 @@ func (*ExportExcel) TkdgOrder(c *gin.Context) {
 		Password   string `json:"password" tag:"兑换码"`
 		Status     string `json:"status" tag:"状态"`
 		ActiveTime string `json:"active_time" tag:"激活时间"`
+		Organ      string `json:"organ" tag:"机构"`
+		Work_num   string `json:"work_num" tag:"工号"`
 		Phone      string `json:"phone" tag:"业务员手机"`
 		OrderNo    string `json:"order_no" tag:"订单号"`
 		Contact    string `json:"contact" tag:"收货人"`
@@ -851,7 +853,7 @@ func (*ExportExcel) TkdgOrder(c *gin.Context) {
 	}
 	var result []Result
 	sqlQuery := `
-	select b.code,b.name,b.sn,b.password,if(d.order_no<>'','已下单',if(c.remark<>'','已分享',if(b.status =0,'未激活','已激活'))) status,if(b.active_time,FROM_UNIXTIME(b.active_time, '%Y-%m-%d %H:%i:%s'),'') active_time,b.mobile as phone,d.order_no,d.contact,d.mobile,concat(d.province,d.city,d.area,d.address) address,SUBSTRING_INDEX(REPLACE (d.customer_info,CONCAT(SUBSTRING_INDEX(d.customer_info, '"contact":', 1),'"contact":"'),''),'"', 1) as remark,d.ship_name,d.ship_no,if(d.c_time,FROM_UNIXTIME(d.c_time, '%Y-%m-%d %H:%i:%s'),'') c_time from car_coupon_pkg b  LEFT JOIN car_coupon c on b.id = c.pkg_id LEFT JOIN car_order_photo d on c.id = d.coupon_id and d.status <> -1 WHERE b.batch_num = 'PB250429469'
+	select b.code,b.name,b.sn,b.password,if(d.order_no<>'','已下单',if(c.remark<>'','已分享',if(b.status =0,'未激活','已激活'))) status,if(b.active_time,FROM_UNIXTIME(b.active_time, '%Y-%m-%d %H:%i:%s'),'') active_time,e.organ,e.work_num,b.mobile as phone,d.order_no,d.contact,d.mobile,concat(d.province,d.city,d.area,d.address) address,SUBSTRING_INDEX(REPLACE (d.customer_info,CONCAT(SUBSTRING_INDEX(d.customer_info, '"contact":', 1),'"contact":"'),''),'"', 1) as remark,d.ship_name,d.ship_no,if(d.c_time,FROM_UNIXTIME(d.c_time, '%Y-%m-%d %H:%i:%s'),'') c_time from car_coupon_pkg b  LEFT JOIN car_coupon c on b.id = c.pkg_id LEFT JOIN car_order_photo d on c.id = d.coupon_id and d.status <> -1 LEFT JOIN (select * from car_order_photo_agent where company = 2) e on(c.user_id = e.uid)  WHERE b.batch_num = 'PB250429469'
 	`
 
 	db := model.RDB[model.MASTER]
