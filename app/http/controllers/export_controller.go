@@ -836,7 +836,6 @@ func (*ExportExcel) TkdgOrder(c *gin.Context) {
 		Code       string `json:"code" tag:"优惠券包编号"`
 		Name       string `json:"name" tag:"名称"`
 		Sn         string `json:"sn" tag:"序列号"`
-		Password   string `json:"password" tag:"兑换码"`
 		Status     string `json:"status" tag:"状态"`
 		ActiveTime string `json:"active_time" tag:"激活时间"`
 		Organ      string `json:"organ" tag:"机构"`
