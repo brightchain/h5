@@ -389,3 +389,72 @@ func cleanHTML(input string) string {
 
     return cleaned
 }
+
+func (p *PayOrder) Ddkf(c *gin.Context){
+	f,err := excelize.OpenFile("1-4月失败数据.xlsx")
+	if err != nil {
+		p.handleError(c, "打开Excel文件失败", err)
+		return
+	}
+	defer f.Close()
+	rows, err := f.GetRows("Sheet2")
+	if err != nil {
+		p.handleError(c, "读取工作表失败", err)
+		return
+	}
+    var orderNo []string
+	for i,row := range rows{
+		if i== 0 || len(row) <7 {
+			continue
+		}
+		orderNo = append(orderNo, row[1])
+	}
+	if len(orderNo) <= 0 {
+		p.handleError(c,"订单号不存在！",nil)
+	}
+	
+	db := model.RDB[model.MASTER].Db
+	type list struct {
+		Serial string `json:"serial"`
+		Flag string `json:"flag"`
+		Status int `json:"status"`
+		BackTime string `json:'back_time'`
+	}
+
+	var lists []list
+
+	err = db.Raw("select *,FROM_UNIXTIME(a.back_time,'%Y-%m-%d %H:%i:%s') back_time from car_ddkf_coupon_list a left join car_coupon b on a.coupon_id = b.id where a.serial in (?)",orderNo).Scan(&lists).Error
+	if err != nil {
+		p.handleError(c,"订单查询失败", err)
+	}
+	if len(lists) <= 0 {
+		p.handleError(c,"订单号不存在！", nil)
+	}
+	results := make(map[string]list)
+	for _, v :=  range lists {
+		results[v.Serial] = v;
+	}
+	for i,row := range rows {
+		if i== 0 || len(row) <7 {
+			continue
+		}
+		if result, ok := results[row[1]]; ok {
+			rowIndex := i + 1
+			
+			// 更新Excel单元格
+			f.SetCellValue("Sheet2", fmt.Sprintf("I%d", rowIndex), result.Status)
+			f.SetCellValue("Sheet2", fmt.Sprintf("J%d", rowIndex), result.BackTime)
+			f.SetCellValue("Sheet2", fmt.Sprintf("K%d", rowIndex), result.Flag)
+		}
+	}
+
+	// 5. 保存文件
+	if err := f.SaveAs("output.xlsx"); err != nil {
+		p.handleError(c, "保存文件失败", err)
+		return
+	}
+
+	c.String(http.StatusOK, "处理完成")
+
+
+}
