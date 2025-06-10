@@ -45,6 +45,7 @@ func RegisterWebRouters(r *gin.Engine) {
 		exGroup.GET("/hnms", export.Hnms)
 		exGroup.GET("/gdtk", export.Gdtk)
 		exGroup.GET("/gdtkorder", export.TkdgOrder)
+		exGroup.GET("/fjrbs", export.FjrbsOrder)
 	}
 
 	aes := controllers.AesEcb{}
@@ -74,5 +75,8 @@ func RegisterWebRouters(r *gin.Engine) {
 	activity := new(controllers.Activity)
 	r.GET("/activity", activity.UserReset)
 	r.GET("/activity_cancel", activity.CancelOrder)
+
+	mobile := new(controllers.MobileController)
+	r.GET("/mobile", mobile.Get)
 
 }

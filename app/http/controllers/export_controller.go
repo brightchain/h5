@@ -867,3 +867,35 @@ func (*ExportExcel) TkdgOrder(c *gin.Context) {
 
 	utils.Down(result, "泰康定格美好摆台订单", c)
 }
+
+func (*ExportExcel) FjrbsOrder(c *gin.Context) {
+	type Result struct {
+		Name      string `json:"name" tag:"业务员姓名"`
+		Phone     string `json:"phone" tag:"业务员手机"`
+		Work_num  string `json:"work_num" tag:"业务员工号"`
+		Company   string `json:"company" tag:"机构名称"`
+		Organ     string `json:"organ" tag:"四级机构"`
+		Num       string `json:"num" tag:"匹配数量"`
+		Sn        string `json:"sn" tag:"序列号"`
+		Id        string `json:"id" tag:"卡券ID"`
+		Status    string `json:"status" tag:"状态"`
+		ActiveTime string `json:"active_time" tag:"激活时间"`
+		OrderNo   string `json:"order_no" tag:"订单号"`
+		Pro_name  string `json:"pro_name" tag:"产品名称"`
+		Contact   string `json:"contact" tag:"收货人"`
+		Mobile    string `json:"mobile" tag:"收货手机"`
+		Address    string `json:"address" tag:"收货地址"`
+		ShipName   string `json:"ship_name" tag:"快递公司"`
+		ShipNo     string `json:"ship_no" tag:"快递单号"`
+		C_time     string `json:"c_time" tag:"下单时间"`
+	}
+	var result []Result
+	sqlQuery := `select c.name,c.work_num,c.organ,c.contact company,a.mobile phone,if(a.status=1,1,a.num) num,b.sn,b.id,case b.status when 0 then '未激活' when 1 then '已激活' when 2 then '已下单' when 3 then '已过期' end status,if(b.active_time,FROM_UNIXTIME(b.active_time, '%Y-%m-%d %H:%i:%s'),'') active_time,d.order_no,d.pro_name,d.contact,d.mobile,concat(d.province,d.city,d.area,d.address) address,d.ship_name,d.ship_no,if(d.c_time,FROM_UNIXTIME(d.c_time, '%Y-%m-%d %H:%i:%s'),'') c_time from car_member_bind_logs a LEFT JOIN car_coupon b on a.mobile = b.mobile and a.coupon_batch = b.batch_num LEFT JOIN (select pro_name,c_time,status,coupon_id,order_no,contact,mobile,province,city,area,address,ship_name,ship_no from car_order_photo WHERE batch_num = 'P2505281009' UNION all SELECT case  when pro_id in(3,4,62,63,64,66)  then '定制马克杯' when pro_id = 61 then '定制手机壳' when pro_id = 26  then '定制帆布袋' end pro_name,c_time,status,coupon_id,order_no,contact,mobile,province,city,area,address,ship_name,ship_no from car_order_tshirt where batch_num = 'P2505281009' UNION all SELECT '定制相册' pro_name,c_time,status,coupon_id,order_no,contact,mobile,province,city,area,address,ship_name,ship_no from car_order_album where batch_num = 'P2505281009') d on b.id = d.coupon_id and d.status <> -1 LEFT JOIN car_order_photo_agent c on a.mobile = c.mobile and c.company = 45 WHERE a.coupon_batch = 'P2505281009'
+	`
+
+	db := model.RDB[model.MASTER]
+	db.Db.Raw(sqlQuery).Find(&result)
+	name := "福建人保寿幸福御定数据"
+
+	utils.Down(result, name, c)
+}
