@@ -71,6 +71,7 @@ func RegisterWebRouters(r *gin.Engine) {
 	r.GET("/mousedown", down.MouseOrderDown)
 	sqlBak := new(controllers.Sqlbak)
 	r.GET("/sqlbak", sqlBak.Index)
+	r.GET("/sqlexcel", sqlBak.Excel)
 
 	activity := new(controllers.Activity)
 	r.GET("/activity", activity.UserReset)
