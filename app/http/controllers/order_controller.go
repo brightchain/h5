@@ -391,23 +391,29 @@ func cleanHTML(input string) string {
 }
 
 func (p *PayOrder) Ddkf(c *gin.Context){
-	f,err := excelize.OpenFile("1-4月失败数据.xlsx")
+	f,err := excelize.OpenFile("失败清单.xlsx")
 	if err != nil {
 		p.handleError(c, "打开Excel文件失败", err)
 		return
 	}
 	defer f.Close()
-	rows, err := f.GetRows("Sheet2")
+	rows, err := f.GetRows("Sheet1")
 	if err != nil {
 		p.handleError(c, "读取工作表失败", err)
 		return
 	}
     var orderNo []string
+	var orderNoStd []string
 	for i,row := range rows{
-		if i== 0 || len(row) <7 {
+		if i== 0 || len(row) <2 {
 			continue
 		}
-		orderNo = append(orderNo, row[1])
+		if row[1][:5] == "wh_std" {
+			orderNoStd = append(orderNoStd, row[1])
+		}else{
+			orderNo = append(orderNo, row[1])
+		}
+		
 	}
 	if len(orderNo) <= 0 {
 		p.handleError(c,"订单号不存在！",nil)
@@ -415,15 +421,18 @@ func (p *PayOrder) Ddkf(c *gin.Context){
 	
 	db := model.RDB[model.MASTER].Db
 	type list struct {
-		Serial string `json:"serial"`
-		Flag string `json:"flag"`
-		Status int `json:"status"`
-		BackTime string `json:'back_time'`
+		Serial  string `json:"serial"`
+		Flag    string `json:"flag"`
+		Coupon_id int    `json:"coupon_id"`
+		Status  int    `json:"status"`
+		Name    string `json:"name"`
+		BackTime string `json:"back_time"`
 	}
 
 	var lists []list
+	var liststds []list
 
-	err = db.Raw("select *,FROM_UNIXTIME(a.back_time,'%Y-%m-%d %H:%i:%s') back_time from car_ddkf_coupon_list a left join car_coupon b on a.coupon_id = b.id where a.serial in (?)",orderNo).Scan(&lists).Error
+	err = db.Raw("select *,FROM_UNIXTIME(a.back_time,'%Y-%m-%d %H:%i:%s') back_time,c.name from car_ddkf_coupon_list a left join car_coupon b on a.coupon_id = b.id left join car_api_product c on a.pro_code = c.code where a.serial in (?)",orderNo).Scan(&lists).Error
 	if err != nil {
 		p.handleError(c,"订单查询失败", err)
 	}
@@ -434,17 +443,30 @@ func (p *PayOrder) Ddkf(c *gin.Context){
 	for _, v :=  range lists {
 		results[v.Serial] = v;
 	}
+
+	err = db.Raw("select *,FROM_UNIXTIME(a.back_time,'%Y-%m-%d %H:%i:%s') back_time from car_ddkf_coupon_info a left join car_coupon b on a.coupon_id = b.id left join car_api_product c on a.pro_code = c.code where a.serial in (?)",orderNo).Scan(&liststds).Error
+	if err != nil {
+		p.handleError(c,"订单查询失败", err)
+	}
+	if len(liststds) > 0 {
+		for _, v :=  range liststds {
+			results[v.Serial] = v;
+		}
+	}
 	for i,row := range rows {
-		if i== 0 || len(row) <7 {
+		if i== 0 || len(row) <3 {
 			continue
 		}
 		if result, ok := results[row[1]]; ok {
 			rowIndex := i + 1
 			
 			// 更新Excel单元格
-			f.SetCellValue("Sheet2", fmt.Sprintf("I%d", rowIndex), result.Status)
-			f.SetCellValue("Sheet2", fmt.Sprintf("J%d", rowIndex), result.BackTime)
-			f.SetCellValue("Sheet2", fmt.Sprintf("K%d", rowIndex), result.Flag)
+			f.SetCellValue("Sheet1", fmt.Sprintf("F%d", rowIndex), result.Coupon_id)
+			f.SetCellValue("Sheet1", fmt.Sprintf("G%d", rowIndex), result.Name)
+			f.SetCellValue("Sheet1", fmt.Sprintf("H%d", rowIndex), result.Status)
+			f.SetCellValue("Sheet1", fmt.Sprintf("I%d", rowIndex), result.Flag)
+			f.SetCellValue("Sheet1", fmt.Sprintf("J%d", rowIndex), result.BackTime)
+			fmt.Printf("Row %d - Serial: %s, Flag: %s, Status: %d, BackTime: %s\n", rowIndex, result.Serial, result.Flag, result.Status, result.BackTime)
 		}
 	}
 
