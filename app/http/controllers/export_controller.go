@@ -997,3 +997,27 @@ func (*ExportExcel) Gsqy(c *gin.Context) {
 	utils.Down(result, "国寿清远摆台", c)
 
 }
+
+func (*ExportExcel) GsqyTotal(c *gin.Context) {
+
+	type Result struct {
+		Name       string `json:"name" tag:"业务员姓名"`
+		Mobile      string `json:"mobile" tag:"业务员手机"`
+		Work_num   string `json:"work_num" tag:"业务员工号"`
+		Contact    string `json:"contact" tag:"机构名称"`
+		Organ      string `json:"organ" tag:"营业区"`
+		Activity   string `json:"activity" tag:"激活状态"`
+		Total_num  string `json:"total_num" tag:"匹配数量"`
+		Order_num  string `json:"order_num" tag:"订单数量"`
+		Last_num   string `json:"last_num" tag:"剩余数量"`
+	}
+	var result []Result
+	sqlQuery := `SELECT a.name, a.mobile, a.work_num, a.contact, a.organ, b.total_num AS total_num, CASE WHEN c.id IS NOT NULL THEN '已激活' ELSE '未激活' END AS activity, IFNULL(c.order_count, 0) AS order_num, GREATEST(IFNULL(b.total_num, 0) - IFNULL(c.order_count, 0), 0) AS last_num FROM car_order_photo_agent a LEFT JOIN ( SELECT mobile, SUM(num) AS total_num FROM car_member_bind_logs WHERE coupon_batch = 'P2507041746' GROUP BY mobile ) b ON a.mobile = b.mobile LEFT JOIN ( SELECT mobile, MAX(id) AS id, SUM(status = 2) AS order_count FROM car_coupon WHERE batch_num = 'P2507041746' GROUP BY mobile ) c ON a.mobile = c.mobile WHERE a.company = 48 GROUP BY a.mobile, a.name, a.organ, a.contact, b.total_num, c.id
+	`
+	db := model.RDB[model.MASTER]
+	db.Db.Raw(sqlQuery).Find(&result)
+
+
+	utils.Down(result, "国寿清远摆台代理人统计", c)
+
+}

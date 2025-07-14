@@ -28,7 +28,10 @@ func getHeaders(v *reflect.Value) []string {
 }
 
 func Down[T any](data []T, filename string, c *gin.Context) {
-	sheetName := "Sheet1"
+	DownExcel(data, filename, "Sheet1", c)
+}
+
+func DownExcel[T any](data []T, filename string, sheetName string, c *gin.Context) {
 	f := excelize.NewFile()
 	f.SetSheetName(sheetName, sheetName)
 	v0 := reflect.ValueOf(data[0])
@@ -56,7 +59,7 @@ func Down[T any](data []T, filename string, c *gin.Context) {
 			row = append(row, fmt.Sprintf("%v", vI.Field(i)))
 		}
 		rowNum++
-		f.SetSheetRow("Sheet1", fmt.Sprintf("A%d", rowNum), &row)
+		f.SetSheetRow(sheetName, fmt.Sprintf("A%d", rowNum), &row)
 	}
 
 	disposition := fmt.Sprintf("attachment; filename=%s-%s.xlsx", url.QueryEscape(filename), time.Now().Format("2006-01-02"))
