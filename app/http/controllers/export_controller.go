@@ -1044,7 +1044,7 @@ func (*ExportExcel) Xcgs(c *gin.Context) {
 		ShipNo     string `json:"ship_no" tag:"快递单号"`
 		C_time     string `json:"c_time" tag:"下单时间"`
 	}
-	batchNum := "P2507041746"
+	batchNum := "P2507240918"
 	company := 50
 	execName := "许昌国寿摆台"
 	if typeVal == "1" {
