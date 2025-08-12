@@ -341,30 +341,27 @@ func (p *PayOrder) ExcelFix(c *gin.Context) {
 	}
 
 	colName := "I"
-	
+
 	for rowIdx, row := range rows {
-        if colNum >= len(row) {
-            continue 
-        }
-        
-        original := row[colNum]
-        cleaned := cleanHTML(original)
-        
-        if rowIdx == 1 {
-            fmt.Printf("Row %d - Original: %s\n", rowIdx+1, original)
-            fmt.Printf("Row %d - Cleaned: %s\n", rowIdx+1, cleaned)
-        }
-        
-        // 设置单元格值
-        cellRef := fmt.Sprintf("%s%d", colName, rowIdx+1)
-        if err := f.SetCellValue(sheetName, cellRef, cleaned); err != nil {
-            fmt.Errorf("failed to set cell %s: %v", cellRef, err)
-			return 
-        }
-    }
+		if colNum >= len(row) {
+			continue
+		}
 
-	
+		original := row[colNum]
+		cleaned := cleanHTML(original)
 
+		if rowIdx == 1 {
+			fmt.Printf("Row %d - Original: %s\n", rowIdx+1, original)
+			fmt.Printf("Row %d - Cleaned: %s\n", rowIdx+1, cleaned)
+		}
+
+		// 设置单元格值
+		cellRef := fmt.Sprintf("%s%d", colName, rowIdx+1)
+		if err := f.SetCellValue(sheetName, cellRef, cleaned); err != nil {
+			fmt.Errorf("failed to set cell %s: %v", cellRef, err)
+			return
+		}
+	}
 
 	// Save the modified Excel file
 	if err := f.SaveAs("2.xlsx"); err != nil {
@@ -372,26 +369,25 @@ func (p *PayOrder) ExcelFix(c *gin.Context) {
 		return
 	}
 
-
 	c.String(http.StatusOK, "处理完成")
 }
 
 func cleanHTML(input string) string {
-    // Remove HTML tags
-    re := regexp.MustCompile(`<[^>]*>`)
-    cleaned := re.ReplaceAllString(input, "")
+	// Remove HTML tags
+	re := regexp.MustCompile(`<[^>]*>`)
+	cleaned := re.ReplaceAllString(input, "")
 
-    // Remove extra whitespace and newlines
-    cleaned = strings.TrimSpace(cleaned)
-    // Replace multiple newlines with single newline
-    reNewline := regexp.MustCompile(`\n\s*\n+`)
-    cleaned = reNewline.ReplaceAllString(cleaned, "\n\n")
+	// Remove extra whitespace and newlines
+	cleaned = strings.TrimSpace(cleaned)
+	// Replace multiple newlines with single newline
+	reNewline := regexp.MustCompile(`\n\s*\n+`)
+	cleaned = reNewline.ReplaceAllString(cleaned, "\n\n")
 
-    return cleaned
+	return cleaned
 }
 
-func (p *PayOrder) Ddkf(c *gin.Context){
-	f,err := excelize.OpenFile("失败清单.xlsx")
+func (p *PayOrder) Ddkf(c *gin.Context) {
+	f, err := excelize.OpenFile("失败清单.xlsx")
 	if err != nil {
 		p.handleError(c, "打开Excel文件失败", err)
 		return
@@ -402,64 +398,64 @@ func (p *PayOrder) Ddkf(c *gin.Context){
 		p.handleError(c, "读取工作表失败", err)
 		return
 	}
-    var orderNo []string
+	var orderNo []string
 	var orderNoStd []string
-	for i,row := range rows{
-		if i== 0 || len(row) <2 {
+	for i, row := range rows {
+		if i == 0 || len(row) < 2 {
 			continue
 		}
 		if row[1][:5] == "wh_std" {
 			orderNoStd = append(orderNoStd, row[1])
-		}else{
+		} else {
 			orderNo = append(orderNo, row[1])
 		}
-		
+
 	}
 	if len(orderNo) <= 0 {
-		p.handleError(c,"订单号不存在！",nil)
+		p.handleError(c, "订单号不存在！", nil)
 	}
-	
+
 	db := model.RDB[model.MASTER].Db
 	type list struct {
-		Serial  string `json:"serial"`
-		Flag    string `json:"flag"`
+		Serial    string `json:"serial"`
+		Flag      string `json:"flag"`
 		Coupon_id int    `json:"coupon_id"`
-		Status  int    `json:"status"`
-		Name    string `json:"name"`
-		BackTime string `json:"back_time"`
+		Status    int    `json:"status"`
+		Name      string `json:"name"`
+		BackTime  string `json:"back_time"`
 	}
 
 	var lists []list
 	var liststds []list
 
-	err = db.Raw("select *,FROM_UNIXTIME(a.back_time,'%Y-%m-%d %H:%i:%s') back_time,c.name from car_ddkf_coupon_list a left join car_coupon b on a.coupon_id = b.id left join car_api_product c on a.pro_code = c.code where a.serial in (?)",orderNo).Scan(&lists).Error
+	err = db.Raw("select a.serial,a.flag,a.coupon_id,b.status,FROM_UNIXTIME(a.back_time,'%Y-%m-%d %H:%i:%s') back_time,c.name from car_ddkf_coupon_list a left join car_coupon b on a.coupon_id = b.id left join car_api_product c on a.pro_code = c.code where a.serial in (?)", orderNo).Scan(&lists).Error
 	if err != nil {
-		p.handleError(c,"订单查询失败", err)
+		p.handleError(c, "订单查询失败", err)
 	}
 	if len(lists) <= 0 {
-		p.handleError(c,"订单号不存在！", nil)
+		p.handleError(c, "订单号不存在！", nil)
 	}
 	results := make(map[string]list)
-	for _, v :=  range lists {
-		results[v.Serial] = v;
+	for _, v := range lists {
+		results[v.Serial] = v
 	}
 
-	err = db.Raw("select *,FROM_UNIXTIME(a.back_time,'%Y-%m-%d %H:%i:%s') back_time from car_ddkf_coupon_info a left join car_coupon b on a.coupon_id = b.id left join car_api_product c on a.pro_code = c.code where a.serial in (?)",orderNo).Scan(&liststds).Error
+	err = db.Raw("select a.serial,a.flag,a.coupon_id,b.status,FROM_UNIXTIME(a.back_time,'%Y-%m-%d %H:%i:%s') back_time from car_ddkf_coupon_info a left join car_coupon b on a.coupon_id = b.id left join car_api_product c on a.pro_code = c.code where a.serial in (?)", orderNo).Scan(&liststds).Error
 	if err != nil {
-		p.handleError(c,"订单查询失败", err)
+		p.handleError(c, "订单查询失败", err)
 	}
 	if len(liststds) > 0 {
-		for _, v :=  range liststds {
-			results[v.Serial] = v;
+		for _, v := range liststds {
+			results[v.Serial] = v
 		}
 	}
-	for i,row := range rows {
-		if i== 0 || len(row) <3 {
+	for i, row := range rows {
+		if i == 0 || len(row) < 3 {
 			continue
 		}
 		if result, ok := results[row[1]]; ok {
 			rowIndex := i + 1
-			
+
 			// 更新Excel单元格
 			f.SetCellValue("Sheet1", fmt.Sprintf("F%d", rowIndex), result.Coupon_id)
 			f.SetCellValue("Sheet1", fmt.Sprintf("G%d", rowIndex), result.Name)
@@ -478,5 +474,82 @@ func (p *PayOrder) Ddkf(c *gin.Context){
 
 	c.String(http.StatusOK, "处理完成")
 
+}
+
+func (p *PayOrder) Zking(c *gin.Context) {
+	f, err := excelize.OpenFile("紫金订单.xlsx")
+	if err != nil {
+		p.handleError(c, "打开Excel文件失败", err)
+		return
+	}
+	defer f.Close()
+	rows, err := f.GetRows("Sheet1")
+	if err != nil {
+		p.handleError(c, "读取工作表失败", err)
+		return
+	}
+	var orderNo []string
+	for i, row := range rows {
+		if i == 0 || len(row) < 2 {
+			continue
+		}
+		if row[1] == "#N/A" {
+			orderNo = append(orderNo, row[0])
+		}
+
+	}
+
+	if len(orderNo) <= 0 {
+		p.handleError(c, "订单号不存在！", nil)
+	}
+
+	db := model.RDB[model.MASTER].Db
+	type list struct {
+		Serial_no    string `json:"serial_no"`
+		Flag      string `json:"flag"`
+		Coupon_id int    `json:"coupon_id"`
+		Status    int    `json:"status"`
+		Name      string `json:"name"`
+		BackTime  string `json:"back_time"`
+	}
+
+	var lists []list
+
+	err = db.Raw("select a.serial_no,a.flag,a.coupon_id,b.status,FROM_UNIXTIME(a.back_time,'%Y-%m-%d %H:%i:%s') back_time,c.name from car_zking_coupon_list a left join car_coupon b on a.coupon_id = b.id left join car_api_product c on a.pro_code = c.code where a.serial_no in (?)", orderNo).Scan(&lists).Error
+	if err != nil {
+		p.handleError(c, "订单查询失败", err)
+	}
+	if len(lists) <= 0 {
+		p.handleError(c, "订单号不存在！", nil)
+	}
+	results := make(map[string]list)
+	for _, v := range lists {
+		results[v.Serial_no] = v
+	}
+
+	for i, row := range rows {
+		if i == 0 || len(row) < 3 {
+			continue
+		}
+		if result, ok := results[row[0]]; ok {
+			rowIndex := i + 1
+
+			// 更新Excel单元格
+			f.SetCellValue("Sheet1", fmt.Sprintf("M%d", rowIndex), result.Coupon_id)
+			f.SetCellValue("Sheet1", fmt.Sprintf("N%d", rowIndex), result.Name)
+			f.SetCellValue("Sheet1", fmt.Sprintf("O%d", rowIndex), result.Status)
+			f.SetCellValue("Sheet1", fmt.Sprintf("P%d", rowIndex), result.Flag)
+			f.SetCellValue("Sheet1", fmt.Sprintf("Q%d", rowIndex), result.BackTime)
+			fmt.Printf("Row %d - Serial: %s, Flag: %s, Status: %d, BackTime: %s\n", rowIndex, result.Serial_no, result.Flag, result.Status, result.BackTime)
+		}
+	}
+
+	// 5. 保存文件
+	if err := f.SaveAs("output.xlsx"); err != nil {
+		p.handleError(c, "保存文件失败", err)
+		return
+	}
+
+	c.String(http.StatusOK, "处理完成")
 
 }
