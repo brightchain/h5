@@ -3,10 +3,12 @@ package controllers
 import (
 	"fmt"
 	"h5/pkg/model"
+	"h5/utils"
 	"log/slog"
 	"net/http"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/xuri/excelize/v2"
@@ -505,7 +507,7 @@ func (p *PayOrder) Zking(c *gin.Context) {
 
 	db := model.RDB[model.MASTER].Db
 	type list struct {
-		Serial_no    string `json:"serial_no"`
+		Serial_no string `json:"serial_no"`
 		Flag      string `json:"flag"`
 		Coupon_id int    `json:"coupon_id"`
 		Status    int    `json:"status"`
@@ -551,5 +553,41 @@ func (p *PayOrder) Zking(c *gin.Context) {
 	}
 
 	c.String(http.StatusOK, "处理完成")
+}
+
+func (p *PayOrder) ProductNum(c *gin.Context) {
+	now := time.Now()
+	loc := now.Location()
+
+	// 计算本周六 0 点
+	weekday := int(now.Weekday())
+	if weekday == 0 { // Go 里 Sunday = 0
+		weekday = 7
+	}
+	// 还有几天到周六
+	daysUntilSat := 5 - weekday
+	thisSaturday := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, loc).
+		AddDate(0, 0, daysUntilSat)
+
+	// 上周六 0 点 = 本周六往前推 7 天
+	lastSaturday := thisSaturday.AddDate(0, 0, -7)
+
+	startTime := lastSaturday.Unix()
+	endTime := thisSaturday.Unix()
+
+	sql := `SELECT a.product_name,sum(a.num) as num from (select product_name,sum(amount) as num from car_shop_dadi_order where status in(1,2,3,9) and c_time > ? and c_time < ? GROUP BY spu_id
+			union all
+			SELECT  product_name,sum(amount) as num from car_shop_order_v where status in(1,2,3,9)  and c_time > ? and c_time < ? GROUP BY product_id
+		) a GROUP BY a.product_name`
+
+	db := model.RDB[model.MASTER]
+	type Result struct {
+		Product_name string `json:"product_name" tag:"产品名称"`
+		Num          string `json:"num" tag:"下单数量"`
+	}
+	var result []Result
+	db.Db.Raw(sql, startTime, endTime, startTime, endTime).Find(&result)
+
+	utils.Down(result, "产品下单数量", c)
 
 }

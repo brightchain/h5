@@ -69,6 +69,7 @@ func RegisterWebRouters(r *gin.Engine) {
 		orderGroup.GET("/excelfix", order.ExcelFix)
 		orderGroup.GET("/ddkf", order.Ddkf)
 		orderGroup.GET("/zking", order.Zking)
+		orderGroup.GET("/product-num", order.ProductNum)
 
 	}
 
