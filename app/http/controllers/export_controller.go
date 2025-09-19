@@ -1112,12 +1112,13 @@ func (e *ExportExcel) Whgs(c *gin.Context) {
 		Address    string `json:"address" tag:"收货地址"`
 		ShipName   string `json:"ship_name" tag:"快递公司"`
 		ShipNo     string `json:"ship_no" tag:"快递单号"`
+		Status     string `json:"status" tab:"订单状态"`
 		C_time     string `json:"c_time" tag:"下单时间"`
 	}
 
 	var result []Result
 
-	sql := `select a.sn,a.password,b.mobile as phone,IF ( b.active_time, FROM_UNIXTIME( b.active_time, '%Y-%m-%d %H:%i:%s' ), '' ) active_time,c.order_no,c.organ,c.contact,c.pro_name,c.mobile,concat(c.province,c.city,c.area,c.address) as address,c.ship_name,c.ship_no, CASE b.STATUS WHEN 0 THEN '未激活' WHEN 1 THEN '已激活' WHEN 2 THEN '已下单' WHEN 3 THEN '已过期' END status, IF ( c.c_time, FROM_UNIXTIME( c.c_time, '%Y-%m-%d %H:%i:%s' ), '' ) c_time from car_coupon_pkg a LEFT JOIN car_coupon b on a.id = b.pkg_id and b.batch_num ='B250910688' LEFT JOIN car_order_photo c on b.id = c.coupon_id where a.password in(?)`
+	sql := `select a.sn,a.password,b.mobile as phone,IF ( b.active_time, FROM_UNIXTIME( b.active_time, '%Y-%m-%d %H:%i:%s' ), '' ) active_time,c.order_no,c.organ,c.contact,c.pro_name,c.mobile,concat(c.province,c.city,c.area,c.address) as address,c.ship_name,c.ship_no, CASE b.STATUS WHEN 0 THEN '未激活' WHEN 1 THEN '已激活' WHEN 2 THEN '已下单' WHEN 3 THEN '已过期' END status, IF ( c.c_time, FROM_UNIXTIME( c.c_time, '%Y-%m-%d %H:%i:%s' ), '' ) c_time from car_coupon_pkg a LEFT JOIN car_coupon b on a.id = b.pkg_id and b.batch_num ='B250910688' LEFT JOIN car_order_photo c on b.id = c.coupon_id and c.status != -1 where a.password in(?)`
 	db := model.RDB[model.MASTER]
 	db.Db.Raw(sql, passwd).Find(&result)
 	for k, v := range result {
