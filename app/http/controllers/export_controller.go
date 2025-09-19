@@ -7,10 +7,12 @@ import (
 	wechabot "h5/pkg/wechaBot"
 	"h5/utils"
 	"log/slog"
+	"net/http"
 	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/xuri/excelize/v2"
 )
 
 type ExportExcel struct{}
@@ -1001,22 +1003,21 @@ func (*ExportExcel) Gsqy(c *gin.Context) {
 func (*ExportExcel) GsqyTotal(c *gin.Context) {
 
 	type Result struct {
-		Name       string `json:"name" tag:"业务员姓名"`
-		Mobile      string `json:"mobile" tag:"业务员手机"`
-		Work_num   string `json:"work_num" tag:"业务员工号"`
-		Contact    string `json:"contact" tag:"机构名称"`
-		Organ      string `json:"organ" tag:"营业区"`
-		Activity   string `json:"activity" tag:"激活状态"`
-		Total_num  string `json:"total_num" tag:"匹配数量"`
-		Order_num  string `json:"order_num" tag:"订单数量"`
-		Last_num   string `json:"last_num" tag:"剩余数量"`
+		Name      string `json:"name" tag:"业务员姓名"`
+		Mobile    string `json:"mobile" tag:"业务员手机"`
+		Work_num  string `json:"work_num" tag:"业务员工号"`
+		Contact   string `json:"contact" tag:"机构名称"`
+		Organ     string `json:"organ" tag:"营业区"`
+		Activity  string `json:"activity" tag:"激活状态"`
+		Total_num string `json:"total_num" tag:"匹配数量"`
+		Order_num string `json:"order_num" tag:"订单数量"`
+		Last_num  string `json:"last_num" tag:"剩余数量"`
 	}
 	var result []Result
 	sqlQuery := `SELECT a.name, a.mobile, a.work_num, a.contact, a.organ, b.total_num AS total_num, CASE WHEN c.id IS NOT NULL THEN '已激活' ELSE '未激活' END AS activity, IFNULL(c.order_count, 0) AS order_num, GREATEST(IFNULL(b.total_num, 0) - IFNULL(c.order_count, 0), 0) AS last_num FROM car_order_photo_agent a LEFT JOIN ( SELECT mobile, SUM(num) AS total_num FROM car_member_bind_logs WHERE coupon_batch = 'P2507041746' GROUP BY mobile ) b ON a.mobile = b.mobile LEFT JOIN ( SELECT mobile, MAX(id) AS id, SUM(status = 2) AS order_count FROM car_coupon WHERE batch_num = 'P2507041746' GROUP BY mobile ) c ON a.mobile = c.mobile WHERE a.company = 48 GROUP BY a.mobile, a.name, a.organ, a.contact, b.total_num, c.id
 	`
 	db := model.RDB[model.MASTER]
 	db.Db.Raw(sqlQuery).Find(&result)
-
 
 	utils.Down(result, "国寿清远摆台代理人统计", c)
 
@@ -1051,9 +1052,9 @@ func (*ExportExcel) Xcgs(c *gin.Context) {
 		batchNum = "P2507151734"
 		company = 51
 		execName = "许昌长葛国寿摆台"
-	}	
+	}
 	var result []Result
-	
+
 	sqlQuery := `SELECT c.name, c.work_num, c.organ, c.contact company, a.mobile phone, a.num AS num11, CASE WHEN a.STATUS = 0 THEN a.num WHEN b.id IS NOT NULL AND b.id <> '' THEN 1 ELSE a.num - ( SELECT count(*) FROM car_coupon bc WHERE bc.mobile = a.mobile AND bc.batch_num = ? ) END AS num, b.sn, b.id, CASE b.STATUS WHEN 0 THEN '未激活' WHEN 1 THEN '已激活' WHEN 2 THEN '已下单' WHEN 3 THEN '已过期' END STATUS, IF ( b.active_time, FROM_UNIXTIME( b.active_time, '%Y-%m-%d %H:%i:%s' ), '' ) active_time, d.order_no, d.pro_name, d.contact, d.mobile, CONCAT( d.province, d.city, d.area, d.address ) address, d.ship_name, d.ship_no, IF ( d.c_time, FROM_UNIXTIME( d.c_time, '%Y-%m-%d %H:%i:%s' ), '' ) c_time FROM ( SELECT mobile, SUM( num ) AS num, uid, coupon_batch, MAX( STATUS ) AS STATUS FROM car_member_bind_logs WHERE coupon_batch = ? GROUP BY mobile, STATUS ) a LEFT JOIN car_coupon b ON a.mobile = b.mobile AND a.coupon_batch = b.batch_num AND a.STATUS = 1 LEFT JOIN car_order_photo_agent c ON a.mobile = c.mobile AND c.company = ? LEFT JOIN ( SELECT pro_name, c_time, STATUS, coupon_id, order_no, contact, mobile, province, city, area, address, ship_name, ship_no FROM car_order_photo WHERE batch_num = ? ) d ON b.id = d.coupon_id AND d.STATUS <> - 1 WHERE a.coupon_batch = ?
 	`
 	db := model.RDB[model.MASTER]
@@ -1061,4 +1062,76 @@ func (*ExportExcel) Xcgs(c *gin.Context) {
 
 	utils.Down(result, execName, c)
 
+}
+
+func (e *ExportExcel) Whgs(c *gin.Context) {
+	f, err := excelize.OpenFile("weihai.xlsx")
+	if err != nil {
+		e.handleError(c, "打开Excel文件失败", err)
+		return
+	}
+
+	defer f.Close()
+	sheets := f.GetSheetList()
+	if len(sheets) == 0 {
+		fmt.Errorf("no sheets found in excel file")
+		return
+	}
+	sheetName := sheets[0]
+
+	// 获取列名
+	rows, err := f.GetRows(sheetName)
+	if err != nil {
+		fmt.Errorf("failed to get rows: %v", err)
+		return
+	}
+	var passwd []string
+	var organs = make(map[string]string)
+	for rowIdx, row := range rows {
+		if rowIdx == 0 {
+			continue
+		}
+		if len(row) > 4 && row[4] != "" {
+        passwd = append(passwd, row[4])
+        organs[row[4]] = ""
+        if len(row) > 5 && row[5] != "" {
+            organs[row[4]] = row[5]
+        }
+    }
+	}
+	type Result struct {
+		Sn         string `json:"sn" tag:"卡号"`
+		Password   string `json:"password" tag:"兑换码"`
+		Phone      string `json:"phone" tag:"业务员手机"`
+		Organ      string `json:"organ" tag:"机构"`
+		ActiveTime string `json:"active_time" tag:"激活时间"`
+		OrderNo    string `json:"order_no" tag:"订单号"`
+		Pro_name   string `json:"pro_name" tag:"产品名称"`
+		Contact    string `json:"contact" tag:"收货人"`
+		Mobile     string `json:"mobile" tag:"收货手机"`
+		Address    string `json:"address" tag:"收货地址"`
+		ShipName   string `json:"ship_name" tag:"快递公司"`
+		ShipNo     string `json:"ship_no" tag:"快递单号"`
+		C_time     string `json:"c_time" tag:"下单时间"`
+	}
+
+	var result []Result
+
+	sql := `select a.sn,a.password,b.mobile as phone,IF ( b.active_time, FROM_UNIXTIME( b.active_time, '%Y-%m-%d %H:%i:%s' ), '' ) active_time,c.order_no,c.organ,c.contact,c.pro_name,c.mobile,concat(c.province,c.city,c.area,c.address) as address,c.ship_name,c.ship_no, CASE b.STATUS WHEN 0 THEN '未激活' WHEN 1 THEN '已激活' WHEN 2 THEN '已下单' WHEN 3 THEN '已过期' END status, IF ( c.c_time, FROM_UNIXTIME( c.c_time, '%Y-%m-%d %H:%i:%s' ), '' ) c_time from car_coupon_pkg a LEFT JOIN car_coupon b on a.id = b.pkg_id and b.batch_num ='B250910688' LEFT JOIN car_order_photo c on b.id = c.coupon_id where a.password in(?)`
+	db := model.RDB[model.MASTER]
+	db.Db.Raw(sql, passwd).Find(&result)
+	for k, v := range result {
+		org := organs[v.Password]
+		if org != "" {
+			result[k].Organ = org
+		}
+	}
+
+	utils.Down(result, "威海国寿", c)
+
+}
+
+func (e *ExportExcel) handleError(c *gin.Context, message string, err error) {
+	slog.Error(message, err)
+	c.String(http.StatusInternalServerError, message)
 }
