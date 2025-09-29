@@ -1136,3 +1136,64 @@ func (e *ExportExcel) handleError(c *gin.Context, message string, err error) {
 	slog.Error(message, err)
 	c.String(http.StatusInternalServerError, message)
 }
+
+
+func (*ExportExcel) Xzgs(c *gin.Context) {
+	at := c.Query("at")
+	if at != "sfdjwie2ji239324" {
+		c.String(200, "非法访问")
+		return
+	}
+
+	type Result struct {
+		Sn            string `json:"sn" tag:"卡券编号"`
+		Password      string `json:"password" tag:"兑换码"`
+		Status        string `json:"status" tag:"状态"`
+		Active_time   string `json:"active_time" tag:"激活时间"`
+		Order_no      string `json:"order_no" tag:"订单号"`
+		Contact       string `json:"contact" tag:"联系人"`
+		Mobile        string `json:"mobile" tag:"手机号"`
+		Province      string `json:"province" tag:"省"`
+		City          string `json:"city" tag:"市"`
+		Area          string `json:"area" tag:"区"`
+		Address       string `json:"address" tag:"地址"`
+		Customer_info string `json:"customer_info" tag:"客户姓名"`
+		Cus_mobile    string `json:"cus_mobile" tag:"客户手机"`
+		Ship_name     string `json:"ship_name" tag:"快递公司"`
+		Ship_no       string `json:"ship_no" tag:"快递单号"`
+		C_time       string `json:"c_time" tag:"下单时间"`
+		
+	}
+
+	var result []Result
+
+	sqlQuery := "select IF ( b.active_time, FROM_UNIXTIME( b.active_time, '%Y-%m-%d %H:%i:%s' ), '' ) active_time,a.status,b.sn,b.password,c.order_no,c.contact,c.mobile,c.province,c.city,c.area,c.address,c.customer_info,c.ship_name,c.ship_no,c.organ,c.work_num,IF ( c.c_time, FROM_UNIXTIME( c.c_time, '%Y-%m-%d %H:%i:%s' ), '' ) c_time from car_coupon_pkg b left join  car_coupon a on a.pkg_id = b.id left join car_order_photo c on a.id = c.coupon_id where b.batch_num = 'PB2509291824'"
+	db := model.RDB[model.MASTER]
+	db.Db.Raw(sqlQuery).Find(&result)
+	type Customer struct {
+		Contact  string `json:"contact"`
+		Work_num int    `json:"work_num"`
+	}
+
+	for k, v := range result {
+		if v.Customer_info != "" {
+			var tom Customer
+			err := json.Unmarshal([]byte(v.Customer_info), &tom)
+			if err == nil {
+				result[k].Customer_info = tom.Contact
+			}
+		}
+
+		status := "未激活"
+		num, _ := strconv.Atoi(v.Status)
+		if num == 1 {
+			status = "已激活"
+		}else if num == 2 {
+			status = "已下单"
+		}
+		result[k].Status = status
+		
+	}
+
+	utils.Down(result, "滁州国寿10寸摆台", c)
+}
