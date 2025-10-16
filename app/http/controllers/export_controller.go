@@ -1197,3 +1197,36 @@ func (*ExportExcel) Xzgs(c *gin.Context) {
 
 	utils.Down(result, "滁州国寿10寸摆台", c)
 }
+
+
+func (e *ExportExcel) Whgss(c *gin.Context) {
+	
+	type Result struct {
+		Sn         string `json:"sn" tag:"卡号"`
+		Password   string `json:"password" tag:"兑换码"`
+		Phone      string `json:"phone" tag:"业务员手机"`
+		Work_num      string `json:"work_num" tag:"业务员工号"`
+		Agt_name      string `json:"agt_name" tag:"业务员姓名"`
+		Organ      string `json:"organ" tag:"机构"`
+		ActiveTime string `json:"active_time" tag:"激活时间"`
+		OrderNo    string `json:"order_no" tag:"订单号"`
+		Pro_name   string `json:"pro_name" tag:"产品名称"`
+		Contact    string `json:"contact" tag:"收货人"`
+		Mobile     string `json:"mobile" tag:"收货手机"`
+		Address    string `json:"address" tag:"收货地址"`
+		ShipName   string `json:"ship_name" tag:"快递公司"`
+		ShipNo     string `json:"ship_no" tag:"快递单号"`
+		Status     string `json:"status" tab:"订单状态"`
+		C_time     string `json:"c_time" tag:"下单时间"`
+	}
+
+	var result []Result
+
+	sql := `select a.sn,a.password,b.mobile as phone,IF ( b.active_time, FROM_UNIXTIME( b.active_time, '%Y-%m-%d %H:%i:%s' ), '' ) active_time,c.order_no,c.organ,c.contact,c.pro_name,SUBSTRING_INDEX(REPLACE (customer_info,CONCAT(SUBSTRING_INDEX(customer_info, '"contact":', 1),'"contact":"'),''),'"', 1) agt_name,c.work_num,c.mobile,concat(c.province,c.city,c.area,c.address) as address,c.ship_name,c.ship_no, CASE b.STATUS WHEN 0 THEN '未激活' WHEN 1 THEN '已激活' WHEN 2 THEN '已下单' WHEN 3 THEN '已过期' END status, IF ( c.c_time, FROM_UNIXTIME( c.c_time, '%Y-%m-%d %H:%i:%s' ), '' ) c_time from car_coupon_pkg a LEFT JOIN car_coupon b on a.id = b.pkg_id and b.batch_num ='P2510110950' LEFT JOIN car_order_photo c on b.id = c.coupon_id and c.status != -1 where a.batch_num = 'PP2510110950'`
+	db := model.RDB[model.MASTER]
+	db.Db.Raw(sql).Find(&result)
+	
+
+	utils.Down(result, "威海国寿", c)
+
+}
