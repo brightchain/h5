@@ -1092,12 +1092,12 @@ func (e *ExportExcel) Whgs(c *gin.Context) {
 			continue
 		}
 		if len(row) > 4 && row[4] != "" {
-        passwd = append(passwd, row[4])
-        organs[row[4]] = ""
-        if len(row) > 5 && row[5] != "" {
-            organs[row[4]] = row[5]
-        }
-    }
+			passwd = append(passwd, row[4])
+			organs[row[4]] = ""
+			if len(row) > 5 && row[5] != "" {
+				organs[row[4]] = row[5]
+			}
+		}
 	}
 	type Result struct {
 		Sn         string `json:"sn" tag:"卡号"`
@@ -1137,15 +1137,56 @@ func (e *ExportExcel) handleError(c *gin.Context, message string, err error) {
 	c.String(http.StatusInternalServerError, message)
 }
 
-
 func (*ExportExcel) Xzgs(c *gin.Context) {
 	at := c.Query("at")
 	if at != "sfdjwie2ji239324" {
 		c.String(200, "非法访问")
 		return
 	}
+	f, err := excelize.OpenFile("xzgs.xlsx")
+	if err != nil {
+		c.String(200, "打开Excel文件失败")
+		return
+	}
+	defer f.Close()
+	sheets := f.GetSheetList()
+	if len(sheets) == 0 {
+		c.String(200, "Excel文件无工作表")
+		return
+	}
+	sheetName := sheets[0]
+
+	// 获取列名
+	rows, err := f.GetRows(sheetName)
+	if err != nil {
+		c.String(200, "获取行数据失败")
+		return
+	}
+
+	type BatchInfo struct {
+		Batch_num string
+		Company   string
+	}
+
+	// initialize map to avoid "assignment to entry in nil map" runtime panic
+	batchInfos := make(map[string]BatchInfo)
+	for rowIdx, row := range rows {
+		if rowIdx == 0 {
+			continue
+		}
+		// ensure we have at least three columns before indexing row[1] and row[2]
+		if len(row) > 2 && row[0] != "" {
+			batchInfos[row[2]] = BatchInfo{
+				Batch_num: row[0],
+				Company:   row[1],
+			}
+		}
+	}
+
 
 	type Result struct {
+		Batch_num     string `json:"batch_num" tag:"批次编号"`
+		Company       string `json:"company" tag:"发货单位"`
 		Sn            string `json:"sn" tag:"卡券编号"`
 		Password      string `json:"password" tag:"兑换码"`
 		Status        string `json:"status" tag:"状态"`
@@ -1161,8 +1202,7 @@ func (*ExportExcel) Xzgs(c *gin.Context) {
 		Cus_mobile    string `json:"cus_mobile" tag:"客户手机"`
 		Ship_name     string `json:"ship_name" tag:"快递公司"`
 		Ship_no       string `json:"ship_no" tag:"快递单号"`
-		C_time       string `json:"c_time" tag:"下单时间"`
-		
+		C_time        string `json:"c_time" tag:"下单时间"`
 	}
 
 	var result []Result
@@ -1188,25 +1228,27 @@ func (*ExportExcel) Xzgs(c *gin.Context) {
 		num, _ := strconv.Atoi(v.Status)
 		if num == 1 {
 			status = "已激活"
-		}else if num == 2 {
+		} else if num == 2 {
 			status = "已下单"
 		}
+		info := batchInfos[v.Password]
+		result[k].Batch_num = info.Batch_num
+		result[k].Company = info.Company
 		result[k].Status = status
-		
+
 	}
 
 	utils.Down(result, "滁州国寿10寸摆台", c)
 }
 
-
 func (e *ExportExcel) Whgss(c *gin.Context) {
-	
+
 	type Result struct {
 		Sn         string `json:"sn" tag:"卡号"`
 		Password   string `json:"password" tag:"兑换码"`
 		Phone      string `json:"phone" tag:"业务员手机"`
-		Work_num      string `json:"work_num" tag:"业务员工号"`
-		Agt_name      string `json:"agt_name" tag:"业务员姓名"`
+		Work_num   string `json:"work_num" tag:"业务员工号"`
+		Agt_name   string `json:"agt_name" tag:"业务员姓名"`
 		Organ      string `json:"organ" tag:"机构"`
 		ActiveTime string `json:"active_time" tag:"激活时间"`
 		OrderNo    string `json:"order_no" tag:"订单号"`
@@ -1225,7 +1267,6 @@ func (e *ExportExcel) Whgss(c *gin.Context) {
 	sql := `select a.sn,a.password,b.mobile as phone,IF ( b.active_time, FROM_UNIXTIME( b.active_time, '%Y-%m-%d %H:%i:%s' ), '' ) active_time,c.order_no,c.organ,c.contact,c.pro_name,SUBSTRING_INDEX(REPLACE (customer_info,CONCAT(SUBSTRING_INDEX(customer_info, '"contact":', 1),'"contact":"'),''),'"', 1) agt_name,c.work_num,c.mobile,concat(c.province,c.city,c.area,c.address) as address,c.ship_name,c.ship_no, CASE b.STATUS WHEN 0 THEN '未激活' WHEN 1 THEN '已激活' WHEN 2 THEN '已下单' WHEN 3 THEN '已过期' END status, IF ( c.c_time, FROM_UNIXTIME( c.c_time, '%Y-%m-%d %H:%i:%s' ), '' ) c_time from car_coupon_pkg a LEFT JOIN car_coupon b on a.id = b.pkg_id and b.batch_num ='P2510110950' LEFT JOIN car_order_photo c on b.id = c.coupon_id and c.status != -1 where a.batch_num = 'PP2510110950'`
 	db := model.RDB[model.MASTER]
 	db.Db.Raw(sql).Find(&result)
-	
 
 	utils.Down(result, "威海国寿", c)
 
