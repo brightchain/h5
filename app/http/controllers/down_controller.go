@@ -65,6 +65,7 @@ func (d *DownOrder) MouseOrderDown(c *gin.Context) {
 		Province      string `json:"province" tag:"省"`
 		City          string `json:"city" tag:"市"`
 		Area          string `json:"area" tag:"区"`
+		Img_type      string `json:"img_type" tag:"图片类型"`
 		Address       string `json:"address" tag:"详细地址"`
 		Remark        string `json:"remark" tag:"备注"`
 		C_time        string `json:"c_time" tag:"创建时间"`
@@ -72,7 +73,7 @@ func (d *DownOrder) MouseOrderDown(c *gin.Context) {
 
 	var result []Result
 	db := model.RDB[model.MASTER]
-	sqlQuery := fmt.Sprintf("select order_no,contact,mobile,province,city,area,address,customer_info,ship_name,ship_no,c_time from car_order_tshirt where %s limit %s", where, limit)
+	sqlQuery := fmt.Sprintf("select order_no,contact,mobile,province,city,area,address,customer_info,ship_name,ship_no,c_time,img_type from car_order_tshirt where %s limit %s", where, limit)
 	fmt.Print(sqlQuery)
 	db.Db.Raw(sqlQuery).Find(&result)
 	if len(result) == 0 {
@@ -116,7 +117,7 @@ func (d *DownOrder) MouseOrderDown(c *gin.Context) {
 			}
 		}
 
-		zName := v.Order_no + v.Contact + ".png"
+		zName := v.Order_no + v.Contact + ".jpg"
 		timestamp, err := strconv.ParseInt(v.C_time, 10, 64)
 		if err != nil {
 			fmt.Println("时间戳转换错误:", err)
@@ -126,7 +127,7 @@ func (d *DownOrder) MouseOrderDown(c *gin.Context) {
 		date := t.Format("2006-01-02")
 		result[k].C_time = t.Format("2006-01-02 15:04:05")
 		orderNo := strings.ToLower(v.Order_no)
-		orderFile := fmt.Sprintf("%s/%s/%s/white_front.png", orderDirectory, date, orderNo)
+		orderFile := fmt.Sprintf("%s/%s/%s/white_front.%s", orderDirectory, date, orderNo, v.Img_type)
 		err = utils.AddFileToZip(zipWriter, orderFile, zName)
 		if err != nil {
 			slog.Warn("压缩失败", err)
