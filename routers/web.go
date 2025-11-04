@@ -72,7 +72,7 @@ func RegisterWebRouters(r *gin.Engine) {
 		orderGroup.GET("/ddkf", order.Ddkf)
 		orderGroup.GET("/zking", order.Zking)
 		orderGroup.GET("/product-num", order.ProductNum)
-
+		orderGroup.GET("/recharge", order.Recharge)
 	}
 
 	down := new(controllers.DownOrder)
