@@ -117,7 +117,7 @@ func (d *DownOrder) MouseOrderDown(c *gin.Context) {
 			}
 		}
 
-		zName := v.Order_no + v.Contact + ".jpg"
+		zName := v.Order_no + v.Contact + "."+v.Img_type
 		timestamp, err := strconv.ParseInt(v.C_time, 10, 64)
 		if err != nil {
 			fmt.Println("时间戳转换错误:", err)
