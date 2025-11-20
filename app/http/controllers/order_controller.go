@@ -608,22 +608,23 @@ func (p *PayOrder) Recharge(c *gin.Context) {
 		{116, "于初"},
 		{15, "佳诺"},
 	}
-	startDate := "2025-09-01"
-	endDate := "2025-10-01"
+	startDate := "2025-10-01"
+	endDate := "2025-11-01"
 	db := model.RDB[model.MASTER].Db
 	type Result struct {
-		OrderNo      string `json:"order_no" tag:"批次编号"`
-		ProductID    string `json:"product_id" tag:"产品id"`
-		ProductName  string `json:"product_name" tag:"产品名称"`
-		CompanyID    string `json:"company_id" tag:"供应商id"`
-		CompanyName  string `json:"company_name" tag:"供应商名称"`
+		OrderNo         string `json:"order_no" tag:"批次编号"`
+		ProductID       string `json:"product_id" tag:"产品id"`
+		ProductName     string `json:"product_name" tag:"产品名称"`
+		CompanyID       string `json:"company_id" tag:"供应商id"`
+		CompanyName     string `json:"company_name" tag:"供应商名称"`
 		RechargeAccount string `json:"recharge_account" tag:"充值账号"`
-		Ctime        string `json:"c_time" tag:"下单时间"`
-		Status       string `json:"status" tag:"状态"`
+		CTime           string `json:"c_time" tag:"下单时间"`
+		Status          string `json:"status" tag:"状态"`
 	}
 	path := "./storage/app/public/"
 	for _, company := range companies {
 		query := buildQuery(company.ID, startDate, endDate)
+		
 		var results []Result
 		err := db.Raw(query).Scan(&results).Error
 		if err != nil {
@@ -633,6 +634,7 @@ func (p *PayOrder) Recharge(c *gin.Context) {
 		if len(results) <= 0 {
 			continue
 		}
+		
 		utils.SaveFile(results, path+company.Name+"订单明细.xlsx")
 	}
 }
@@ -642,37 +644,43 @@ func buildQuery(companyID int, startDate, endDate string) string {
 SELECT a.order_no AS order_no, a.product_id AS product_id, b.title AS product_name, a.company_id AS company_id,
        c.name AS company_name, a.recharge_account AS recharge_account, a.c_time AS c_time, a.status AS status
 FROM (
-	SELECT order_no, product_id, company_id, recharge_account, FROM_UNIXTIME(c_time) AS c_time,
+	SELECT order_no, product_id, company_id, recharge_account,
+	       FROM_UNIXTIME(c_time, '%%Y-%%m-%%d %%H:%%i:%%s') AS c_time,
 	       CASE status WHEN '01' THEN '已完成' WHEN '02' THEN '下单中' END AS status
 	FROM car_order_video
 	WHERE company_id = %d AND status IN ('01','02')
 	  AND c_time > UNIX_TIMESTAMP('%s') AND c_time < UNIX_TIMESTAMP('%s')
 	UNION ALL
-	SELECT order_no, product_id, company_id, recharge_account, FROM_UNIXTIME(c_time) AS c_time,
+	SELECT order_no, product_id, company_id, recharge_account,
+	       FROM_UNIXTIME(c_time, '%%Y-%%m-%%d %%H:%%i:%%s') AS c_time,
 	       CASE status WHEN '01' THEN '已完成' WHEN '02' THEN '下单中' END AS status
 	FROM car_order_music
 	WHERE company_id = %d AND status IN ('01','02')
 	  AND c_time > UNIX_TIMESTAMP('%s') AND c_time < UNIX_TIMESTAMP('%s')
 	UNION ALL
-	SELECT order_no, product_id, company_id, recharge_account, FROM_UNIXTIME(c_time) AS c_time,
+	SELECT order_no, product_id, company_id, recharge_account,
+	       FROM_UNIXTIME(c_time, '%%Y-%%m-%%d %%H:%%i:%%s') AS c_time,
 	       CASE status WHEN '01' THEN '已完成' WHEN '02' THEN '下单中' END AS status
 	FROM car_order_listen
 	WHERE company_id = %d AND status IN ('01','02')
 	  AND c_time > UNIX_TIMESTAMP('%s') AND c_time < UNIX_TIMESTAMP('%s')
 	UNION ALL
-	SELECT order_no, product_id, company_id, recharge_account, FROM_UNIXTIME(c_time) AS c_time,
+	SELECT order_no, product_id, company_id, recharge_account,
+	       FROM_UNIXTIME(c_time, '%%Y-%%m-%%d %%H:%%i:%%s') AS c_time,
 	       CASE status WHEN '01' THEN '已完成' WHEN '02' THEN '下单中' END AS status
 	FROM car_order_read
 	WHERE company_id = %d AND status IN ('01','02')
 	  AND c_time > UNIX_TIMESTAMP('%s') AND c_time < UNIX_TIMESTAMP('%s')
 	UNION ALL
-	SELECT order_no, product_id, company_id, recharge_account, FROM_UNIXTIME(c_time) AS c_time,
+	SELECT order_no, product_id, company_id, recharge_account,
+	       FROM_UNIXTIME(c_time, '%%Y-%%m-%%d %%H:%%i:%%s') AS c_time,
 	       CASE status WHEN '01' THEN '已完成' WHEN '02' THEN '下单中' END AS status
 	FROM car_order_voucher
 	WHERE company_id = %d AND status IN ('01','02')
 	  AND c_time > UNIX_TIMESTAMP('%s') AND c_time < UNIX_TIMESTAMP('%s')
 	UNION ALL
-	SELECT order_no, product_id, company_id, recharge_account, FROM_UNIXTIME(c_time) AS c_time,
+	SELECT order_no, product_id, company_id, recharge_account,
+	       FROM_UNIXTIME(c_time, '%%Y-%%m-%%d %%H:%%i:%%s') AS c_time,
 	       CASE status WHEN '01' THEN '已完成' WHEN '02' THEN '下单中' END AS status
 	FROM car_order_charge
 	WHERE company_id = %d AND status IN ('01','02')
@@ -684,7 +692,8 @@ LEFT JOIN car_supplier c ON a.company_id = c.id
 UNION ALL
 
 SELECT a.order_no, a.product_id, a.product_name, a.company_id,
-       b.name, a.account, FROM_UNIXTIME(a.c_time),
+       b.name, a.account,
+       FROM_UNIXTIME(a.c_time, '%%Y-%%m-%%d %%H:%%i:%%s') AS c_time,
        CASE a.status WHEN '01' THEN '已完成' WHEN '02' THEN '已下单' END
 FROM car_vcard_order a
 LEFT JOIN car_supplier b ON a.company_id = b.id
@@ -697,5 +706,6 @@ WHERE a.company_id = %d AND a.status IN ('01','02')
 		companyID, startDate, endDate,
 		companyID, startDate, endDate,
 		companyID, startDate, endDate,
-		)
+	)
 }
+
