@@ -607,9 +607,11 @@ func (p *PayOrder) Recharge(c *gin.Context) {
 		{54, "今点"},
 		{116, "于初"},
 		{15, "佳诺"},
+		{102, "中保"},
+		{111, "奇那梦"},
 	}
-	startDate := "2025-10-01"
-	endDate := "2025-11-01"
+	startDate := "2025-11-01"
+	endDate := "2025-12-01"
 	db := model.RDB[model.MASTER].Db
 	type Result struct {
 		OrderNo         string `json:"order_no" tag:"批次编号"`
@@ -624,7 +626,7 @@ func (p *PayOrder) Recharge(c *gin.Context) {
 	path := "./storage/app/public/"
 	for _, company := range companies {
 		query := buildQuery(company.ID, startDate, endDate)
-		
+
 		var results []Result
 		err := db.Raw(query).Scan(&results).Error
 		if err != nil {
@@ -634,8 +636,8 @@ func (p *PayOrder) Recharge(c *gin.Context) {
 		if len(results) <= 0 {
 			continue
 		}
-		
-		utils.SaveFile(results, path+company.Name+"订单明细.xlsx")
+
+		utils.SaveFile(results, path+company.Name+fmt.Sprintf("订单明细%s.xlsx", startDate[:7]))
 	}
 }
 
@@ -681,9 +683,9 @@ FROM (
 	UNION ALL
 	SELECT order_no, product_id, company_id, recharge_account,
 	       FROM_UNIXTIME(c_time, '%%Y-%%m-%%d %%H:%%i:%%s') AS c_time,
-	       CASE status WHEN '01' THEN '已完成' WHEN '02' THEN '下单中' END AS status
+	       CASE status WHEN '01' THEN '已完成' WHEN '05' THEN '已使用' WHEN '02' THEN '下单中' END AS status
 	FROM car_order_charge
-	WHERE company_id = %d AND status IN ('01','02')
+	WHERE company_id = %d AND status IN ('01','02','05')
 	  AND c_time > UNIX_TIMESTAMP('%s') AND c_time < UNIX_TIMESTAMP('%s')
 ) AS a
 LEFT JOIN car_recharge_pro_v b ON a.product_id = b.code
@@ -708,4 +710,3 @@ WHERE a.company_id = %d AND a.status IN ('01','02')
 		companyID, startDate, endDate,
 	)
 }
-
