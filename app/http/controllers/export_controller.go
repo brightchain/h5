@@ -1276,7 +1276,7 @@ func (*ExportExcel) PhotoOrder(c *gin.Context) {
 	sign := c.Query("sign")
 	var barchNum []string
 	if sign == "asdjh2389jsdf0923" {
-		barchNum = []string{"PB251027521", "PB251107163"}
+		barchNum = []string{"PB251027521", "PB251107163","PB251127147"}
 	}else if( sign == "asdjh2389jsdf09wer3"){
 		barchNum = []string{"P2511061042"}
 	}
