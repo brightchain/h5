@@ -8,6 +8,7 @@
 - 日志输出使用Golang日志库slog，搭配lumberjack日志文件切割
 - 数据库使用gorm,支持多数据源DBResolver配置
 - 企业微信上传文件并通知到微信群
+- 基于amqp091-go rabbitmq队列处理
 - 后台管理功能 开发中...
 
 ## Installation

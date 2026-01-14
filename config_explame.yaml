@@ -33,3 +33,6 @@ logger:
   maxAge: 30               #保留旧文件的最大天数
 wechatBot: #企业微信机器人配置
   bot1: 693a91f6-7xxx-4bc4-97a0-0ec2sifa5aaa
+mq: 
+  amqp:
+    url: amqp://guest:guest@127.0.0.1:5672/
