@@ -1,8 +1,9 @@
 package mq
 
 import (
-	"sync"
 	"h5/pkg/config"
+	"sync"
+
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 

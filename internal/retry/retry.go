@@ -2,12 +2,14 @@ package retry
 
 import (
 	"encoding/json"
-	"log"
+	"fmt"
 	"strconv"
 	"time"
 
-	amqp "github.com/rabbitmq/amqp091-go"
 	"h5/internal/mq"
+	"h5/pkg/logger"
+
+	amqp "github.com/rabbitmq/amqp091-go"
 )
 
 var delays = []int{5, 10, 20}
@@ -15,7 +17,7 @@ const maxRetry = 3
 
 func Retry(ch *amqp.Channel, body []byte, retryCount int) {
 	if retryCount >= maxRetry {
-		log.Println("Retry exceeded, give up")
+		logger.LogError(fmt.Sprintf("处理订单重试失败: %s", string(body)), nil)
 		return
 	}
 

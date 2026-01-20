@@ -2,9 +2,11 @@ package consumer
 
 import (
 	"encoding/json"
+	"fmt"
 	"h5/internal/handler"
 	"h5/internal/mq"
 	"h5/internal/retry"
+	"h5/pkg/logger"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 )
@@ -17,6 +19,9 @@ type OrderCancelMessage struct {
 
 func ConsumeOrderCancel(once bool) error {
 	conn, err := mq.GetConn()
+	if err != nil {
+		return err
+	}
 	ch, err := conn.Channel()
 	
 	if err != nil {
@@ -45,6 +50,7 @@ func ConsumeOrderCancel(once bool) error {
 		err := handleMessage(ch,msg)
 		if err != nil {
 			msg.Nack(false, false)
+			logger.LogError(fmt.Sprintf("处理订单取消消息失败: %s", err.Error()), err)
 		} else {
 			msg.Ack(false)
 		}
