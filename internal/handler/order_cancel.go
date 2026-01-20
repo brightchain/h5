@@ -111,6 +111,63 @@ func cancelZY(orderNo string) error {
 
 
 func cancelDD(orderNo string) error {
-	log.Println("Cancel DD order:", orderNo)
-	return nil
+	if orderNo == "" {
+		logger.LogError("取消大地订单: "+orderNo, nil)
+		return errors.New("订单号不能为空")
+	}
+
+	db := model.RDB[model.MASTER]
+	if db == nil || db.Db == nil {
+		log.Println("database not initialized")
+		return errors.New("database not initialized")
+	}
+	return db.Db.Transaction(func(tx *gorm.DB) error {
+		var order models.DdShopOrder
+
+		// 一定要 Preload Items
+		if err := tx.Where("order_no = ?", orderNo).
+			First(&order).Error; err != nil {
+
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				logger.LogError("订单不存在: "+orderNo, nil)
+				return nil
+			}
+			return err
+		}
+
+		// 幂等
+		if order.Status != 0 {
+			logger.LogError("订单状态不允许取消: "+orderNo, nil)
+			return nil
+		}
+
+		// 更新订单状态
+		if err := tx.Model(&order).Updates(map[string]interface{}{
+			"status": 7,
+			"u_time": time.Now().Unix(),
+		}).Error; err != nil {
+			return err
+		}
+
+		// 恢复库存
+		if err := tx.Exec(`
+				UPDATE car_shop_dianli_goods
+				SET stock_qty = stock_qty + ?
+				WHERE id = ?
+			`, order.Amount, order.SpuID).Error; err != nil {
+				return err
+			}
+			logger.LogError("恢复库存: "+orderNo, nil)
+
+		// 恢复商品优惠券
+		if order.CouponID != nil && *order.CouponID > 0  {
+			if err := tx.Model(&models.Coupon{}).
+				Where("id = ? AND status = 2", *order.CouponID).
+				Update("status", 1).Error; err != nil {
+				return err
+			}
+		}
+		
+		return nil // 自动 commit
+	})
 }
