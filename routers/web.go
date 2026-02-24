@@ -90,15 +90,5 @@ func RegisterWebRouters(r *gin.Engine) {
 	mobile := new(controllers.MobileController)
 	r.GET("/mobile", mobile.Get)
 
-	// SM2 加密接口
-	sm2 := new(controllers.Sm2Controller)
-	sm2Group := r.Group("/api/sm2")
-	{
-		sm2Group.POST("/generate-keys", sm2.GenerateKeys)
-		sm2Group.POST("/encrypt", sm2.Encrypt)
-		sm2Group.POST("/decrypt", sm2.Decrypt)
-		sm2Group.POST("/sign", sm2.Sign)
-		sm2Group.POST("/verify", sm2.Verify)
-	}
 
 }
