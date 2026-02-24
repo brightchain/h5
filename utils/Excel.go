@@ -2,6 +2,7 @@ package utils
 
 import (
 	"fmt"
+	"io"
 	"log/slog"
 	"net/url"
 	"reflect"
@@ -104,4 +105,25 @@ func SaveFile[T any](data []T, filename string) {
 	if err := f.SaveAs(filename); err != nil {
 		slog.Error("excel error", err)
 	}
+}
+
+func ImportExcel(reader io.Reader) ([][]string, error) {
+	f, err := excelize.OpenReader(reader)
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+
+	sheets := f.GetSheetList()
+	if len(sheets) == 0 {
+		return nil, fmt.Errorf("no sheets found in excel file")
+	}
+
+	sheetName := sheets[0]
+	rows, err := f.GetRows(sheetName)
+	if err != nil {
+		return nil, err
+	}
+
+	return rows, nil
 }

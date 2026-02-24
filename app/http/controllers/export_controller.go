@@ -1307,3 +1307,49 @@ func (*ExportExcel) PhotoOrder(c *gin.Context) {
 
 	utils.Down(result, "摆台数据", c)
 }
+
+func (*ExportExcel) Sxxh(c *gin.Context) {
+	typeVal := c.Query("type")
+	type Result struct {
+		Name       string `json:"name" tag:"业务员姓名"`
+		Phone      string `json:"phone" tag:"业务员手机"`
+		Work_num   string `json:"work_num" tag:"业务员工号"`
+		Company    string `json:"company" tag:"机构名称"`
+		Organ      string `json:"organ" tag:"营业区"`
+		Num        string `json:"num" tag:"匹配数量"`
+		Sn         string `json:"sn" tag:"序列号"`
+		Id         string `json:"id" tag:"卡券ID"`
+		Status     string `json:"status" tag:"状态"`
+		ActiveTime string `json:"active_time" tag:"激活时间"`
+		OrderNo    string `json:"order_no" tag:"订单号"`
+		Pro_name   string `json:"pro_name" tag:"产品名称"`
+		Contact    string `json:"contact" tag:"收货人"`
+		Mobile     string `json:"mobile" tag:"收货手机"`
+		Address    string `json:"address" tag:"收货地址"`
+		ShipName   string `json:"ship_name" tag:"快递公司"`
+		ShipNo     string `json:"ship_no" tag:"快递单号"`
+		C_time     string `json:"c_time" tag:"下单时间"`
+	}
+
+	//'bath_num' => 'P260210183',//照片书
+	//   'bath_num' => 'P260210182', //摆台
+	batchNum := "P260210182"
+	company := 86
+	execName := "摆台订单"
+	sqlQuery := `SELECT c.name, c.work_num, c.organ, c.contact company, a.mobile phone, a.num AS num11, CASE WHEN a.STATUS = 0 THEN a.num WHEN b.id IS NOT NULL AND b.id <> '' THEN 1 ELSE a.num - ( SELECT count(*) FROM car_coupon bc WHERE bc.mobile = a.mobile AND bc.batch_num = ? ) END AS num, b.sn, b.id, CASE b.STATUS WHEN 0 THEN '未激活' WHEN 1 THEN '已激活' WHEN 2 THEN '已下单' WHEN 3 THEN '已过期' END STATUS, IF ( b.active_time, FROM_UNIXTIME( b.active_time, '%Y-%m-%d %H:%i:%s' ), '' ) active_time, d.order_no, d.pro_name, d.contact, d.mobile, CONCAT( d.province, d.city, d.area, d.address ) address, d.ship_name, d.ship_no, IF ( d.c_time, FROM_UNIXTIME( d.c_time, '%Y-%m-%d %H:%i:%s' ), '' ) c_time FROM ( SELECT mobile, SUM( num ) AS num, uid, coupon_batch, MAX( STATUS ) AS STATUS FROM car_member_bind_logs WHERE coupon_batch = ? GROUP BY mobile, STATUS ) a LEFT JOIN car_coupon b ON a.mobile = b.mobile AND a.coupon_batch = b.batch_num AND a.STATUS = 1 LEFT JOIN car_order_photo_agent c ON a.mobile = c.mobile AND c.company = ? LEFT JOIN ( SELECT pro_name, c_time, STATUS, coupon_id, order_no, contact, mobile, province, city, area, address, ship_name, ship_no FROM car_order_photo WHERE batch_num = ? ) d ON b.id = d.coupon_id AND d.STATUS <> - 1 WHERE a.coupon_batch = ?`
+	if typeVal == "1" {
+		batchNum = "P260210183"
+		execName = "照片书订单"
+		sqlQuery = `SELECT c.name, c.work_num, c.organ, c.contact company, a.mobile phone, a.num AS num11, CASE WHEN a.STATUS = 0 THEN a.num WHEN b.id IS NOT NULL AND b.id <> '' THEN 1 ELSE a.num - ( SELECT count(*) FROM car_coupon bc WHERE bc.mobile = a.mobile AND bc.batch_num = ? ) END AS num, b.sn, b.id, CASE b.STATUS WHEN 0 THEN '未激活' WHEN 1 THEN '已激活' WHEN 2 THEN '已下单' WHEN 3 THEN '已过期' END STATUS, IF ( b.active_time, FROM_UNIXTIME( b.active_time, '%Y-%m-%d %H:%i:%s' ), '' ) active_time, d.order_no, d.pro_name, d.contact, d.mobile, CONCAT( d.province, d.city, d.area, d.address ) address, d.ship_name, d.ship_no, IF ( d.c_time, FROM_UNIXTIME( d.c_time, '%Y-%m-%d %H:%i:%s' ), '' ) c_time FROM ( SELECT mobile, SUM( num ) AS num, uid, coupon_batch, MAX( STATUS ) AS STATUS FROM car_member_bind_logs WHERE coupon_batch = ? GROUP BY mobile, STATUS ) a LEFT JOIN car_coupon b ON a.mobile = b.mobile AND a.coupon_batch = b.batch_num AND a.STATUS = 1 LEFT JOIN car_order_photo_agent c ON a.mobile = c.mobile AND c.company = ? LEFT JOIN ( SELECT '照片书' pro_name, c_time, STATUS, coupon_id, order_no, contact, mobile, province, city, area, address, ship_name, ship_no FROM car_order_album WHERE batch_num = ? ) d ON b.id = d.coupon_id AND d.STATUS <> - 1 WHERE a.coupon_batch = ?`
+	}
+	var result []Result
+
+	
+	
+	db := model.RDB[model.MASTER]
+	db.Db.Raw(sqlQuery, batchNum, batchNum, company, batchNum, batchNum).Find(&result)
+	//fmt.Println("ss", result,execName);
+
+	utils.Down(result, execName, c)
+
+}
