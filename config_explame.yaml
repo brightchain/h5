@@ -36,3 +36,7 @@ wechatBot: #企业微信机器人配置
 mq: 
   amqp:
     url: amqp://guest:guest@127.0.0.1:5672/
+sms:
+  url: https://api.smsprovider.com/send
+  account: your_sms_api_account
+  password: your_sms_api_password

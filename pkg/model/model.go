@@ -54,7 +54,7 @@ func connByConf(key string) {
 }
 
 func connectDB(key string) (*gorm.DB, error) {
-	filename := config.GetString("logger.gormName")
+	filename := config.GetString("logger.gormName", "./storage/logs/gorm.log")
 	level := config.GetString("logger.level")
 	logOps := logger.Config{
 		SlowThreshold:             time.Second, // Slow SQL threshold
@@ -82,12 +82,12 @@ func connectDB(key string) (*gorm.DB, error) {
 	newLogger := logger.New(log.New(f, "\r\n", log.LstdFlags), logOps)
 	configPath := "databases." + key
 	dsn := fmt.Sprintf("%v:%v@tcp(%v:%v)/%v?charset=%v&parseTime=True&loc=Local",
-		config.GetString(configPath+".username"),
-		config.GetString(configPath+".password"),
-		config.GetString(configPath+".host"),
-		config.GetString(configPath+".port"),
-		config.GetString(configPath+".database"),
-		config.GetString(configPath+".charset"))
+		config.GetString(configPath+".username", "root"),
+		config.GetString(configPath+".password", ""),
+		config.GetString(configPath+".host", "127.0.0.1"),
+		config.GetString(configPath+".port", "3306"),
+		config.GetString(configPath+".database", ""),
+		config.GetString(configPath+".charset", "utf8mb4"))
 	//fmt.Printf("数据库%v,%v", key, dsn)
 	gormConfig := mysql.New(mysql.Config{
 		DSN: dsn,
