@@ -611,12 +611,13 @@ func (p *PayOrder) Recharge(c *gin.Context) {
 		{110, "奇那梦"},
 		{185, "鸿联九五"},
 		{186, "商云"},
+		{187, "鸿联九五-中澜"},
 	}
-	startDate := "2026-03-01"
-	endDate := "2026-04-01"
+	startDate := "2026-04-01"
+	endDate := "2026-05-01"
 	db := model.RDB[model.MASTER].Db
 	type Result struct {
-		OrderNo         string `json:"order_no" tag:"批次编号"`
+		OrderNo         string `json:"order_no" tag:"订单编号"`
 		ProductID       string `json:"product_id" tag:"产品id"`
 		ProductName     string `json:"product_name" tag:"产品名称"`
 		CompanyID       string `json:"company_id" tag:"供应商id"`
