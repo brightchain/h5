@@ -13,6 +13,7 @@ func RegisterWebRouters(r *gin.Engine) {
 	})
 	i := new(controllers.Index)
 	r.GET("/index", i.Index)
+	r.GET("/txt-to-excel", i.TxtToExcel)
 	dir := new(controllers.DirectoryClear)
 	r.GET("/photo-clear", dir.PhotoDirClear)
 	r.GET("/photo-month", dir.PhotoDirMonth)
@@ -89,6 +90,5 @@ func RegisterWebRouters(r *gin.Engine) {
 
 	mobile := new(controllers.MobileController)
 	r.GET("/mobile", mobile.Get)
-
 
 }
