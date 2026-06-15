@@ -64,3 +64,32 @@ func TestWriteAgentStatisticsWorkbookCreatesMonthlySheets(t *testing.T) {
 		t.Fatalf("unexpected headers: %#v", rows[0])
 	}
 }
+
+func TestMergeAgentMonthlyStatisticsIncludesAgentsWithoutCustomers(t *testing.T) {
+	agents := []diyAgent{
+		{WorkNum: "A001", Name: "张三"},
+		{WorkNum: "A002", Name: "李四"},
+	}
+	statistics := []diyAgentMonthlyStat{
+		{Month: "2026-01", WorkNum: "A001", TotalNum: 3, OrderNum: 1},
+	}
+
+	result := mergeAgentMonthlyStatistics(agents, statistics, []string{"2026-01"})
+	if len(result) != 2 {
+		t.Fatalf("expected two agents, got %#v", result)
+	}
+	if result[1].WorkNum != "A002" || result[1].TotalNum != 0 || result[1].OrderNum != 0 {
+		t.Fatalf("agent without customers was not exported with zero values: %#v", result[1])
+	}
+}
+
+func TestAgentStatisticMonthsIncludesEmptyRequestedMonths(t *testing.T) {
+	start, end, err := parseMonthRange("2026-01", "2026-03")
+	if err != nil {
+		t.Fatal(err)
+	}
+	months := agentStatisticMonths(nil, start, end)
+	if len(months) != 3 || months[0] != "2026-01" || months[2] != "2026-03" {
+		t.Fatalf("unexpected months: %#v", months)
+	}
+}
