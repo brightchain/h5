@@ -55,6 +55,7 @@ func RegisterWebRouters(r *gin.Engine) {
 		exGroup.GET("/whgss", export.Whgss)
 		exGroup.GET("/photo", export.PhotoOrder)
 		exGroup.GET("/sxxh", export.Sxxh)
+		exGroup.GET("/agent-statistics", export.AgentStatistics)
 	}
 
 	aes := controllers.AesEcb{}
