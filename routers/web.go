@@ -92,4 +92,8 @@ func RegisterWebRouters(r *gin.Engine) {
 	mobile := new(controllers.MobileController)
 	r.GET("/mobile", mobile.Get)
 
+	orderMigrate := new(controllers.OrderMigrate)
+	r.GET("/order/migrate-start", orderMigrate.Start)
+	r.GET("/order/migrate-progress", orderMigrate.Progress)
+
 }
